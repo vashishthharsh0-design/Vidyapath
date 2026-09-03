@@ -1,0 +1,53 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="18"
+        android:translateY="18"
+        android:scaleX="0.666"
+        android:scaleY="0.666">
+        <!-- Open Book Pages Left -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,34 C44,30 30,30 18,34 L18,80 C30,76 44,76 54,80 Z" />
+        <!-- Open Book Pages Right -->
+        <path
+            android:fillColor="#FFF8E1"
+            android:pathData="M54,34 C64,30 78,30 90,34 L90,80 C78,76 64,76 54,80 Z" />
+        <!-- Book Spine / Center Line -->
+        <path
+            android:fillColor="#E0E0E0"
+            android:pathData="M52,34 L56,34 L56,80 L52,80 Z" />
+        <!-- Left Page Lines -->
+        <path
+            android:strokeColor="#90CAF9"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:pathData="M24,42 L48,42 M24,50 L48,50 M24,58 L44,58 M24,66 L40,66" />
+        <!-- Right Page Lines -->
+        <path
+            android:strokeColor="#FFB74D"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:pathData="M60,42 L84,42 M60,50 L84,50 M60,58 L80,58 M60,66 L74,66" />
+        <!-- Graduation Cap on top -->
+        <path
+            android:fillColor="#FFD54F"
+            android:pathData="M54,14 L78,24 L54,34 L30,24 Z" />
+        <path
+            android:fillColor="#FFA000"
+            android:pathData="M72,27.5 L72,36 C72,36 65,41 54,41 C43,41 36,36 36,36 L36,27.5 L54,35 Z" />
+        <!-- Tassel -->
+        <path
+            android:strokeColor="#FFE082"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:pathData="M78,24 L82,32 L82,38" />
+        <!-- Sparkle of Wisdom -->
+        <path
+            android:fillColor="#FFEB3B"
+            android:pathData="M54,4 L56,10 L62,12 L56,14 L54,20 L52,14 L46,12 L52,10 Z" />
+    </group>
+</vector>

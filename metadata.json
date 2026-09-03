@@ -1,0 +1,6 @@
+{
+  "name": "VidyaNotes",
+  "description": "Indian Syllabus & CBSE Board learning companion featuring class-wise curated YouTube lectures & one-shots, NCERT crux, model test papers with marking schemes, and smart note-taking methods.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -3,6 +3,7 @@ package com.example.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.GeminiChatRepository
 import com.example.data.MnemonicsRepository
 import com.example.data.NoteMethodsRepository
 import com.example.data.NoteRepository
@@ -41,11 +42,25 @@ data class MainUiState(
     val videoFilterSubject: SubjectType? = null,
     val videoFilterCategory: VideoCategory = VideoCategory.ALL,
     val videoSearchQuery: String = "",
-    val savedVideoIds: Set<String> = emptySet()
+    val savedVideoIds: Set<String> = emptySet(),
+    val chatMessages: List<ChatMessage> = listOf(
+        ChatMessage(
+            sender = ChatSender.AI_TUTOR,
+            text = "Namaste! 🙏 I am your **Vidya AI Educational Mentor**.\n\nI can assist you across all Indian curricula (CBSE, ICSE, State Boards):\n• 📘 **NCERT Concept Explanations** with step-by-step clarity\n• 📋 **CBSE Marking Schemes** to maximize your board exam score\n• 🔬 **Complex STEM & Accounts Numericals** (Partnership, Physics Optics, Calculus)\n• 🌐 **Live CBSE Updates & Syllabus Grounding** using Google Search\n• ⚡ **Rapid 1-minute formulas & Cornell note cues**\n\nChoose an AI mode above or ask any doubt to get started!",
+            modelUsed = "gemini-3.5-flash",
+            personaName = "Vidya AI Guru"
+        )
+    ),
+    val selectedAiPersona: AiTutorPersona = AiTutorPersona.GENERAL_CBSE,
+    val isAiSearchGroundingEnabled: Boolean = false,
+    val isAiGenerating: Boolean = false,
+    val aiContextChapter: ChapterItem? = null,
+    val aiInputText: String = ""
 )
 
 enum class AppTab(val title: String, val iconKey: String) {
     SYLLABUS("Syllabus", "MenuBook"),
+    AI_TUTOR("AI Tutor", "AutoAwesome"),
     VIDEOS("Videos", "PlayCircle"),
     TEST_PAPERS("Papers", "Assignment"),
     NOTEBOOK("Notebook", "EditNote"),
@@ -355,6 +370,143 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 state.savedVideoIds + videoId
             }
             state.copy(savedVideoIds = updated)
+        }
+    }
+
+    // ==========================================
+    // AI EDUCATIONAL TUTOR BOT
+    // ==========================================
+    fun setAiPersona(persona: AiTutorPersona) {
+        _uiState.update {
+            it.copy(
+                selectedAiPersona = persona,
+                isAiSearchGroundingEnabled = persona.defaultSearchGrounding || it.isAiSearchGroundingEnabled
+            )
+        }
+    }
+
+    fun toggleAiSearchGrounding() {
+        _uiState.update { it.copy(isAiSearchGroundingEnabled = !it.isAiSearchGroundingEnabled) }
+    }
+
+    fun setAiInputText(text: String) {
+        _uiState.update { it.copy(aiInputText = text) }
+    }
+
+    fun clearAiChat() {
+        _uiState.update {
+            it.copy(
+                chatMessages = listOf(
+                    ChatMessage(
+                        sender = ChatSender.AI_TUTOR,
+                        text = "Namaste! 🙏 Chat history cleared. What topic or doubt from your **${it.selectedGrade.displayName}** curriculum would you like to master next?",
+                        modelUsed = it.selectedAiPersona.modelId,
+                        personaName = it.selectedAiPersona.title
+                    )
+                ),
+                aiContextChapter = null,
+                isAiGenerating = false
+            )
+        }
+    }
+
+    fun openAiChatWithContext(chapter: ChapterItem, prompt: String? = null) {
+        _uiState.update {
+            it.copy(
+                activeTab = AppTab.AI_TUTOR,
+                aiContextChapter = chapter,
+                aiInputText = prompt ?: "Explain the most important concepts and CBSE marking scheme for '${chapter.title}'"
+            )
+        }
+        if (!prompt.isNullOrBlank()) {
+            sendAiMessage(prompt)
+        }
+    }
+
+    fun retryLastAiMessage() {
+        val lastUserMsg = _uiState.value.chatMessages.lastOrNull { it.sender == ChatSender.USER } ?: return
+        // Remove trailing error message if any
+        _uiState.update { state ->
+            state.copy(chatMessages = state.chatMessages.filter { !it.isError })
+        }
+        sendAiMessage(lastUserMsg.text, isRetry = true)
+    }
+
+    fun sendAiMessage(customPrompt: String? = null, isRetry: Boolean = false) {
+        val prompt = (customPrompt ?: _uiState.value.aiInputText).trim()
+        if (prompt.isBlank() || _uiState.value.isAiGenerating) return
+
+        val currentState = _uiState.value
+        val persona = currentState.selectedAiPersona
+        val isSearchGrounding = currentState.isAiSearchGroundingEnabled
+        val grade = currentState.selectedGrade
+        val board = currentState.selectedBoard
+        val contextChapter = currentState.aiContextChapter?.title
+
+        val userMessage = ChatMessage(
+            sender = ChatSender.USER,
+            text = prompt
+        )
+
+        val loadingPlaceholder = ChatMessage(
+            sender = ChatSender.AI_TUTOR,
+            text = "Analyzing concept & formulating explanation...",
+            modelUsed = persona.modelId,
+            personaName = persona.title,
+            isSearchGrounded = isSearchGrounding,
+            isLoading = true
+        )
+
+        val updatedList = if (isRetry) {
+            currentState.chatMessages.filter { it.id != userMessage.id } + listOf(loadingPlaceholder)
+        } else {
+            currentState.chatMessages + listOf(userMessage, loadingPlaceholder)
+        }
+
+        _uiState.update {
+            it.copy(
+                chatMessages = updatedList,
+                isAiGenerating = true,
+                aiInputText = ""
+            )
+        }
+
+        viewModelScope.launch {
+            val result = GeminiChatRepository.generateAiResponse(
+                conversationHistory = currentState.chatMessages,
+                userMessage = prompt,
+                persona = persona,
+                isSearchGroundingEnabled = isSearchGrounding,
+                grade = grade,
+                board = board,
+                chapterContext = contextChapter
+            )
+
+            _uiState.update { state ->
+                val listWithoutLoading = state.chatMessages.filter { !it.isLoading }
+                result.fold(
+                    onSuccess = { replyMsg ->
+                        state.copy(
+                            chatMessages = listWithoutLoading + replyMsg,
+                            isAiGenerating = false
+                        )
+                    },
+                    onFailure = { error ->
+                        val errorMsg = ChatMessage(
+                            sender = ChatSender.AI_TUTOR,
+                            text = "Could not generate response: ${error.localizedMessage ?: "Network or API issue."}\n\n*Tip: Check that your Gemini API key is valid in the AI Studio Secrets panel or try again.*",
+                            modelUsed = persona.modelId,
+                            personaName = persona.title,
+                            isError = true,
+                            errorMessage = error.message
+                        )
+                        state.copy(
+                            chatMessages = listWithoutLoading + errorMsg,
+                            isAiGenerating = false
+                        )
+                    }
+                )
+            }
         }
     }
 }

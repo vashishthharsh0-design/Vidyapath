@@ -30,6 +30,7 @@ fun ChapterDetailScreen(
     chapter: ChapterItem,
     onBack: () -> Unit,
     onCreateNotes: (ChapterItem, NoteMethodType) -> Unit,
+    onAskAiTutor: (ChapterItem) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -52,21 +53,19 @@ fun ChapterDetailScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(12.dp)
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Recommended Method:",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = chapter.suggestedMethod.title,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = SaffronPrimary
-                        )
+                    OutlinedButton(
+                        onClick = { onAskAiTutor(chapter) },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.testTag("ask_ai_from_chapter_button")
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = SaffronPrimary, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Ask Vidya AI", color = SaffronPrimary, fontWeight = FontWeight.Bold)
                     }
+
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     Button(
                         onClick = { onCreateNotes(chapter, chapter.suggestedMethod) },

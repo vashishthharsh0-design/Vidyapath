@@ -80,7 +80,8 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                     onToggleRecallMode = { viewModel.toggleCoverRecallMode() },
                     onBackClick = if (state.selectedChapter != null) {
                         { viewModel.selectChapter(null) }
-                    } else null
+                    } else null,
+                    onAiTutorClick = { viewModel.selectTab(AppTab.AI_TUTOR) }
                 )
             },
             bottomBar = {
@@ -102,6 +103,7 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                     ChapterDetailScreen(
                         chapter = state.selectedChapter!!,
                         onBack = { viewModel.selectChapter(null) },
+                        onAskAiTutor = { chapter -> viewModel.openAiChatWithContext(chapter) },
                         onCreateNotes = { chapter, method ->
                             viewModel.openNewNoteEditor(
                                 initialTitle = "${chapter.title} - ${method.title}",
@@ -139,7 +141,33 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                                             initialTags = "#${chapter.subject.displayName}, #Class10, #NCERT"
                                         )
                                     },
-                                    onNavigateToVideos = { viewModel.selectTab(AppTab.VIDEOS) }
+                                    onNavigateToVideos = { viewModel.selectTab(AppTab.VIDEOS) },
+                                    onNavigateToAiTutor = { viewModel.selectTab(AppTab.AI_TUTOR) }
+                                )
+                            }
+
+                            AppTab.AI_TUTOR -> {
+                                AiTutorChatScreen(
+                                    state = state,
+                                    onSendMessage = { viewModel.sendAiMessage(it) },
+                                    onSetPersona = { viewModel.setAiPersona(it) },
+                                    onToggleSearchGrounding = { viewModel.toggleAiSearchGrounding() },
+                                    onInputTextChange = { viewModel.setAiInputText(it) },
+                                    onClearChat = { viewModel.clearAiChat() },
+                                    onRetry = { viewModel.retryLastAiMessage() },
+                                    onSaveToNotes = { title, content ->
+                                        viewModel.openNewNoteEditor(
+                                            initialTitle = title,
+                                            initialSubject = state.selectedSubject?.displayName ?: state.aiContextChapter?.subject?.displayName ?: "General",
+                                            initialChapter = state.aiContextChapter?.title ?: "AI Tutor Solutions",
+                                            initialMethod = NoteMethodType.CORNELL,
+                                            initialCue = "Key Concepts / Cues:\n" + content.lines().filter { it.startsWith("•") || it.startsWith("-") || it.startsWith("1.") || it.startsWith("2.") }.take(6).joinToString("\n"),
+                                            initialMain = content,
+                                            initialSummary = "Quick Summary / Formula:\n" + content.lines().takeLast(3).joinToString("\n"),
+                                            initialTags = "#${state.selectedBoard.shortName}, #${state.selectedGrade.displayName.replace(" ", "")}, #VidyaAI"
+                                        )
+                                    },
+                                    onClearChapterContext = { viewModel.selectChapter(null) }
                                 )
                             }
 

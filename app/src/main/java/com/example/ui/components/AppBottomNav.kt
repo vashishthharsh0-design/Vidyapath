@@ -29,6 +29,7 @@ fun AppBottomNav(
     ) {
         val tabs = listOf(
             Triple(AppTab.SYLLABUS, Icons.Filled.MenuBook, Icons.Outlined.MenuBook),
+            Triple(AppTab.AI_TUTOR, Icons.Filled.AutoAwesome, Icons.Outlined.AutoAwesome),
             Triple(AppTab.VIDEOS, Icons.Filled.PlayCircle, Icons.Outlined.PlayCircle),
             Triple(AppTab.TEST_PAPERS, Icons.Filled.Assignment, Icons.Outlined.Assignment),
             Triple(AppTab.NOTEBOOK, Icons.Filled.EditNote, Icons.Outlined.EditNote),

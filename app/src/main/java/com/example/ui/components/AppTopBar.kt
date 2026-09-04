@@ -31,6 +31,7 @@ fun AppTopBar(
     onSearchQueryChange: (String) -> Unit,
     onToggleRecallMode: () -> Unit,
     onBackClick: (() -> Unit)? = null,
+    onAiTutorClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showGradeMenu by remember { mutableStateOf(false) }
@@ -201,6 +202,19 @@ fun AppTopBar(
                                     }
                                 )
                             }
+                        }
+                    }
+
+                    if (onAiTutorClick != null) {
+                        IconButton(
+                            onClick = onAiTutorClick,
+                            modifier = Modifier.testTag("top_bar_ai_tutor_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Vidya AI Tutor",
+                                tint = if (state.activeTab == AppTab.AI_TUTOR) SaffronPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
 

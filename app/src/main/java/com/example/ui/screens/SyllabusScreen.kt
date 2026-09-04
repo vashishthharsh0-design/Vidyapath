@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.data.SyllabusRepository
 import com.example.data.VideoSuggestionRepository
 import com.example.model.*
@@ -36,6 +37,7 @@ fun SyllabusScreen(
     onSubjectSelect: (SubjectType?) -> Unit,
     onCreateNotesForChapter: (ChapterItem) -> Unit,
     onNavigateToVideos: () -> Unit = {},
+    onNavigateToAiTutor: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val filteredChapters = if (state.searchQuery.isNotBlank()) {
@@ -269,6 +271,75 @@ fun SyllabusScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Vidya AI Tutor Spotlight Card
+        item {
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("syllabus_ai_tutor_card")
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = SaffronPrimary
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Vidya AI Mentor", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White)
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = Color(0xFF4285F4).copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = "Google Search Grounded",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(0xFF4285F4),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        TextButton(
+                            onClick = onNavigateToAiTutor,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                            modifier = Modifier.height(28.dp)
+                        ) {
+                            Text("Open Chat →", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = SaffronPrimary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Need help with ${state.selectedGrade.displayName}?",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Ask any NCERT concept doubt, step-by-step numerical derivation, or get verified CBSE marking schemes instantly.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

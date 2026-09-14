@@ -1,6 +1,6 @@
 {
-  "name": "VidyaNotes",
-  "description": "Indian Syllabus & CBSE Board learning companion featuring an AI Educational Tutor with Gemini 3.5 Flash & 3.1 Pro reasoning, Google Search Grounding, class-wise YouTube lectures, NCERT crux, and Cornell smart notes.",
+  "name": "VidyaNotes Lite",
+  "description": "Lightweight, ultra-fast Indian Syllabus & CBSE learning companion featuring offline NCERT crux, rapid Cornell smart notes, flashcard recall, official paper patterns, and data-saver Lite mode.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.model.NoteMethodType
 import com.example.ui.components.AppBottomNav
 import com.example.ui.components.AppTopBar
+import com.example.ui.components.LiteModeInfoDialog
 import com.example.ui.screens.*
 import com.example.ui.theme.VidyaNotesTheme
 import com.example.viewmodel.AppTab
@@ -78,6 +79,8 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                     onBoardChange = { viewModel.setBoard(it) },
                     onSearchQueryChange = { viewModel.setSearchQuery(it) },
                     onToggleRecallMode = { viewModel.toggleCoverRecallMode() },
+                    onToggleLiteMode = { viewModel.toggleLiteMode() },
+                    onOpenLiteModeInfo = { viewModel.openLiteModeInfoDialog() },
                     onBackClick = if (state.selectedChapter != null) {
                         { viewModel.selectChapter(null) }
                     } else null,
@@ -88,7 +91,8 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                 if (state.selectedChapter == null) {
                     AppBottomNav(
                         selectedTab = state.activeTab,
-                        onTabSelected = { viewModel.selectTab(it) }
+                        onTabSelected = { viewModel.selectTab(it) },
+                        isLiteMode = state.isLiteMode
                     )
                 }
             },
@@ -142,7 +146,12 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                                         )
                                     },
                                     onNavigateToVideos = { viewModel.selectTab(AppTab.VIDEOS) },
-                                    onNavigateToAiTutor = { viewModel.selectTab(AppTab.AI_TUTOR) }
+                                    onNavigateToAiTutor = { viewModel.selectTab(AppTab.AI_TUTOR) },
+                                    onNavigateToNotes = { viewModel.selectTab(AppTab.NOTEBOOK) },
+                                    onNavigateToFlashcards = { viewModel.selectTab(AppTab.FLASHCARDS) },
+                                    onNavigateToPapers = { viewModel.selectTab(AppTab.TEST_PAPERS) },
+                                    onNavigateToTricks = { viewModel.selectTab(AppTab.EXAM_TRICKS) },
+                                    onOpenLiteInfo = { viewModel.openLiteModeInfoDialog() }
                                 )
                             }
 
@@ -216,7 +225,12 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                                             initialSummary = "Topper Tip: ${question.topperTip}\nCommon Pitfall: ${question.commonPitfall}",
                                             initialTags = "#${paper.subject.displayName}, #BoardExam, #ModelPaper"
                                         )
-                                    }
+                                    },
+                                    onOpenGenerateDialog = { viewModel.openTestPaperGenerateDialog() },
+                                    onCloseGenerateDialog = { viewModel.closeTestPaperGenerateDialog() },
+                                    onGeneratePaper = { request -> viewModel.generateTestPaper(request) },
+                                    onExportPdf = { paper -> viewModel.openPdfExportDialog(paper) },
+                                    onClosePdfExportDialog = { viewModel.closePdfExportDialog() }
                                 )
                             }
 
@@ -273,5 +287,14 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                 }
             }
         }
+    }
+
+    if (state.showLiteModeInfoDialog) {
+        LiteModeInfoDialog(
+            isLiteMode = state.isLiteMode,
+            dataSavedMb = state.dataSavedMegabytes,
+            onToggleLiteMode = { viewModel.toggleLiteMode() },
+            onDismiss = { viewModel.closeLiteModeInfoDialog() }
+        )
     }
 }

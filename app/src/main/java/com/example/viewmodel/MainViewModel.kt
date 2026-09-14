@@ -8,6 +8,7 @@ import com.example.data.MnemonicsRepository
 import com.example.data.NoteMethodsRepository
 import com.example.data.NoteRepository
 import com.example.data.SyllabusRepository
+import com.example.data.TestPaperGeneratorRepository
 import com.example.data.local.AppDatabase
 import com.example.model.*
 import kotlinx.coroutines.flow.*
@@ -39,6 +40,14 @@ data class MainUiState(
     val testPaperFilterSubject: SubjectType? = null,
     val isExamTimerRunning: Boolean = false,
     val examTimeSecondsRemaining: Int = 180 * 60,
+    val customTestPapers: List<TestPaperItem> = emptyList(),
+    val isGeneratingTestPaper: Boolean = false,
+    val paperForPdfExport: TestPaperItem? = null,
+    val showTestPaperGenerateDialog: Boolean = false,
+    val testPaperGenerationError: String? = null,
+    val isLiteMode: Boolean = true,
+    val showLiteModeInfoDialog: Boolean = false,
+    val dataSavedMegabytes: Double = 148.5,
     val videoFilterSubject: SubjectType? = null,
     val videoFilterCategory: VideoCategory = VideoCategory.ALL,
     val videoSearchQuery: String = "",
@@ -314,6 +323,86 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 isExamTimerRunning = false,
                 examTimeSecondsRemaining = (_uiState.value.selectedTestPaper?.timeAllowedMinutes ?: 180) * 60
+            )
+        }
+    }
+
+    fun openTestPaperGenerateDialog() {
+        _uiState.update { it.copy(showTestPaperGenerateDialog = true) }
+    }
+
+    fun closeTestPaperGenerateDialog() {
+        _uiState.update { it.copy(showTestPaperGenerateDialog = false) }
+    }
+
+    fun openPdfExportDialog(paper: TestPaperItem) {
+        _uiState.update { it.copy(paperForPdfExport = paper) }
+    }
+
+    fun closePdfExportDialog() {
+        _uiState.update { it.copy(paperForPdfExport = null) }
+    }
+
+    fun toggleLiteMode() {
+        _uiState.update { current ->
+            val newLite = !current.isLiteMode
+            // In Lite mode, we focus on SYLLABUS, NOTEBOOK, FLASHCARDS, TEST_PAPERS
+            val targetTab = if (newLite && (current.activeTab == AppTab.VIDEOS || current.activeTab == AppTab.NOTE_METHODS || current.activeTab == AppTab.EXAM_TRICKS)) {
+                AppTab.SYLLABUS
+            } else {
+                current.activeTab
+            }
+            current.copy(
+                isLiteMode = newLite,
+                activeTab = targetTab
+            )
+        }
+    }
+
+    fun openLiteModeInfoDialog() {
+        _uiState.update { it.copy(showLiteModeInfoDialog = true) }
+    }
+
+    fun closeLiteModeInfoDialog() {
+        _uiState.update { it.copy(showLiteModeInfoDialog = false) }
+    }
+
+    fun generateTestPaper(
+        request: PaperGenerationRequest,
+        onComplete: ((TestPaperItem) -> Unit)? = null
+    ) {
+        _uiState.update {
+            it.copy(
+                isGeneratingTestPaper = true,
+                testPaperGenerationError = null
+            )
+        }
+
+        viewModelScope.launch {
+            val result = TestPaperGeneratorRepository.generateTestPaper(request)
+            result.fold(
+                onSuccess = { generatedPaper ->
+                    _uiState.update { state ->
+                        val updatedList = listOf(generatedPaper) + state.customTestPapers
+                        state.copy(
+                            customTestPapers = updatedList,
+                            selectedTestPaper = generatedPaper,
+                            isGeneratingTestPaper = false,
+                            showTestPaperGenerateDialog = false,
+                            isExamTimerRunning = false,
+                            examTimeSecondsRemaining = generatedPaper.timeAllowedMinutes * 60
+                        )
+                    }
+                    onComplete?.invoke(generatedPaper)
+                },
+                onFailure = { err ->
+                    _uiState.update {
+                        it.copy(
+                            isGeneratingTestPaper = false,
+                            testPaperGenerationError = err.localizedMessage ?: "Failed to generate paper"
+                        )
+                    }
+                }
             )
         }
     }

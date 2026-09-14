@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.TestPaperRepository
 import com.example.model.*
+import com.example.ui.components.PdfExportDialog
+import com.example.ui.components.TestPaperGenerateDialog
 import com.example.ui.theme.*
 import com.example.viewmodel.MainUiState
 
@@ -45,29 +47,60 @@ fun TestPaperScreen(
     onResetTimer: () -> Unit,
     onResetProgress: (String) -> Unit,
     onCreateNoteFromQuestion: (TestQuestion, TestPaperItem) -> Unit,
+    onOpenGenerateDialog: () -> Unit,
+    onCloseGenerateDialog: () -> Unit,
+    onGeneratePaper: (PaperGenerationRequest) -> Unit,
+    onExportPdf: (TestPaperItem) -> Unit,
+    onClosePdfExportDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (state.selectedTestPaper != null) {
-        TestPaperDetailView(
-            paper = state.selectedTestPaper,
-            state = state,
-            onBack = { onSelectPaper(null) },
-            onSelectMcqOption = onSelectMcqOption,
-            onToggleMarkingScheme = onToggleMarkingScheme,
-            onSetSelfScore = onSetSelfScore,
-            onToggleTimer = onToggleTimer,
-            onResetTimer = onResetTimer,
-            onResetProgress = { onResetProgress(state.selectedTestPaper.id) },
-            onCreateNote = { q -> onCreateNoteFromQuestion(q, state.selectedTestPaper) },
-            modifier = modifier
-        )
-    } else {
-        TestPaperListView(
-            state = state,
-            onSelectPaper = onSelectPaper,
-            onFilterSubject = onFilterSubject,
-            modifier = modifier
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        if (state.selectedTestPaper != null) {
+            TestPaperDetailView(
+                paper = state.selectedTestPaper,
+                state = state,
+                onBack = { onSelectPaper(null) },
+                onSelectMcqOption = onSelectMcqOption,
+                onToggleMarkingScheme = onToggleMarkingScheme,
+                onSetSelfScore = onSetSelfScore,
+                onToggleTimer = onToggleTimer,
+                onResetTimer = onResetTimer,
+                onResetProgress = { onResetProgress(state.selectedTestPaper.id) },
+                onCreateNote = { q -> onCreateNoteFromQuestion(q, state.selectedTestPaper) },
+                onExportPdf = onExportPdf,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            TestPaperListView(
+                state = state,
+                onSelectPaper = onSelectPaper,
+                onFilterSubject = onFilterSubject,
+                onOpenGenerateDialog = onOpenGenerateDialog,
+                onExportPdf = onExportPdf,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        // Test Paper Generation Dialog
+        if (state.showTestPaperGenerateDialog) {
+            TestPaperGenerateDialog(
+                initialGrade = state.selectedGrade,
+                initialBoard = state.selectedBoard,
+                initialSubject = state.selectedSubject,
+                availableSubjects = SubjectType.values().toList(),
+                isGenerating = state.isGeneratingTestPaper,
+                onDismiss = onCloseGenerateDialog,
+                onGenerate = onGeneratePaper
+            )
+        }
+
+        // PDF Export & Print Dialog
+        if (state.paperForPdfExport != null) {
+            PdfExportDialog(
+                paper = state.paperForPdfExport,
+                onDismiss = onClosePdfExportDialog
+            )
+        }
     }
 }
 
@@ -76,9 +109,13 @@ fun TestPaperListView(
     state: MainUiState,
     onSelectPaper: (TestPaperItem) -> Unit,
     onFilterSubject: (SubjectType?) -> Unit,
+    onOpenGenerateDialog: () -> Unit,
+    onExportPdf: (TestPaperItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val papers = TestPaperRepository.getTestPapersBySubject(state.testPaperFilterSubject)
+    val staticPapers = TestPaperRepository.getTestPapersBySubject(state.testPaperFilterSubject)
+    val customFiltered = state.customTestPapers.filter { state.testPaperFilterSubject == null || it.subject == state.testPaperFilterSubject }
+    val papers = customFiltered + staticPapers
 
     LazyColumn(
         modifier = modifier
@@ -87,7 +124,7 @@ fun TestPaperListView(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(top = 12.dp, bottom = 80.dp)
     ) {
-        // Hero Card
+        // Hero Card with Pattern Generator Callout
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
@@ -117,7 +154,7 @@ fun TestPaperListView(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "CBSE BOARD STRICT BLUEPRINT",
+                                    text = "OFFICIAL BOARD BLUEPRINTS",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
@@ -133,17 +170,31 @@ fun TestPaperListView(
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Class 12 Commerce & Science Mock Papers",
+                            text = "CBSE & ICSE Board Mock Papers",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Practice full 80-Mark question papers strictly based on official CBSE blueprints with section breakdowns, step marking schemes & topper answer scripts.",
+                            text = "Practice standard 80M / 40M / 25M question papers strictly based on official blueprints with step marking schemes, topper solutions, and A4 printable PDF exports.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFFF1F5F9)
                         )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Generator Action Card Button
+                        Button(
+                            onClick = onOpenGenerateDialog,
+                            colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.testTag("hero_generate_paper_btn")
+                        ) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Generate Paper as per Pattern", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -166,7 +217,7 @@ fun TestPaperListView(
                         FilterChip(
                             selected = state.testPaperFilterSubject == null,
                             onClick = { onFilterSubject(null) },
-                            label = { Text("All Papers") },
+                            label = { Text("All Papers (${papers.size})") },
                             leadingIcon = if (state.testPaperFilterSubject == null) {
                                 { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                             } else null,
@@ -175,9 +226,11 @@ fun TestPaperListView(
                     }
                     val subjects = listOf(
                         SubjectType.ACCOUNTANCY,
-                        SubjectType.BUSINESS_STUDIES,
+                        SubjectType.SCIENCE_GENERAL,
+                        SubjectType.MATHEMATICS,
+                        SubjectType.PHYSICS,
                         SubjectType.ECONOMICS,
-                        SubjectType.SCIENCE_GENERAL
+                        SubjectType.BUSINESS_STUDIES
                     )
                     items(subjects) { subj ->
                         FilterChip(
@@ -288,19 +341,43 @@ fun TestPaperListView(
                             )
                         }
 
-                        Button(
-                            onClick = { onSelectPaper(paper) },
-                            colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Start Test",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(14.dp))
+                            OutlinedButton(
+                                onClick = { onExportPdf(paper) },
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                                modifier = Modifier.testTag("pdf_btn_${paper.id}")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PictureAsPdf,
+                                    contentDescription = null,
+                                    tint = Color(0xFFDC2626),
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "PDF",
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+
+                            Button(
+                                onClick = { onSelectPaper(paper) },
+                                colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "Start Test",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(14.dp))
+                            }
                         }
                     }
                 }
@@ -321,6 +398,7 @@ fun TestPaperDetailView(
     onResetTimer: () -> Unit,
     onResetProgress: () -> Unit,
     onCreateNote: (TestQuestion) -> Unit,
+    onExportPdf: (TestPaperItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showInstructions by remember { mutableStateOf(false) }
@@ -361,10 +439,30 @@ fun TestPaperDetailView(
                     Text("All Papers", style = MaterialTheme.typography.labelSmall)
                 }
 
-                TextButton(onClick = onResetProgress) {
-                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Reset Paper", style = MaterialTheme.typography.labelSmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(
+                        onClick = { onExportPdf(paper) },
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.testTag("export_pdf_detail_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = null,
+                            tint = Color(0xFFDC2626),
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Export PDF / Print", style = MaterialTheme.typography.labelSmall)
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    TextButton(onClick = onResetProgress) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Reset", style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
         }

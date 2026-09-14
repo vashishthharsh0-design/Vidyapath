@@ -55,7 +55,7 @@ fun FlashcardsScreen(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
-                    .padding(bottom = 60.dp)
+                    .padding(16.dp)
                     .testTag("add_flashcard_fab")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Flashcard")

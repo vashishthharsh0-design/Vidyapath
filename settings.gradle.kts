@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "VidyaNotes"
+rootProject.name = "VidyaNotes Lite"
 
 include(":app")

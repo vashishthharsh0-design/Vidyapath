@@ -60,7 +60,7 @@ fun NotebookScreen(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
-                    .padding(bottom = 60.dp)
+                    .padding(16.dp)
                     .testTag("add_new_note_fab")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add New Smart Note")

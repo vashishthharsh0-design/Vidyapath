@@ -2,7 +2,11 @@ package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.model.BoardType
 import com.example.model.ClassGrade
@@ -30,6 +35,8 @@ fun AppTopBar(
     onBoardChange: (BoardType) -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onToggleRecallMode: () -> Unit,
+    onToggleLiteMode: () -> Unit = {},
+    onOpenLiteModeInfo: () -> Unit = {},
     onBackClick: (() -> Unit)? = null,
     onAiTutorClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -40,27 +47,36 @@ fun AppTopBar(
 
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
-        modifier = modifier.fillMaxWidth()
+        tonalElevation = 3.dp,
+        shadowElevation = 1.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("app_top_bar")
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .padding(top = 10.dp, bottom = 10.dp)
         ) {
+            // Row 1: Brand & Primary Actions
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             ) {
+                // Left: Logo & App Title
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
                     if (onBackClick != null) {
                         IconButton(
                             onClick = onBackClick,
-                            modifier = Modifier.testTag("top_bar_back_button")
+                            modifier = Modifier
+                                .size(40.dp)
+                                .testTag("top_bar_back_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
@@ -68,201 +84,330 @@ fun AppTopBar(
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
+                        Spacer(modifier = Modifier.width(6.dp))
                     } else {
                         Box(
                             modifier = Modifier
-                                .size(38.dp)
+                                .size(36.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(SaffronPrimary),
+                                .background(if (state.isLiteMode) EmeraldGreen else SaffronPrimary),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.MenuBook,
+                                imageVector = if (state.isLiteMode) Icons.Default.Bolt else Icons.Default.MenuBook,
                                 contentDescription = "VidyaNotes Logo",
                                 tint = Color.White,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
-                        Column {
+                    }
+
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "VidyaNotes",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.ExtraBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            if (state.isLiteMode) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    color = EmeraldGreenLight,
+                                    shape = RoundedCornerShape(6.dp),
+                                    modifier = Modifier
+                                        .clickable { onOpenLiteModeInfo() }
+                                        .testTag("top_lite_badge")
+                                ) {
+                                    Text(
+                                        text = "⚡ LITE",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = EmeraldGreen,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Text(
+                            text = if (state.isLiteMode) "Offline Crux • Fast & Zero Data" else "NCERT & CBSE Board Companion",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (state.isLiteMode) EmeraldGreen else SaffronPrimary,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                // Right Actions: Search & AI Tutor shortcut
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    // Search toggle button
+                    IconButton(
+                        onClick = { isSearchExpanded = !isSearchExpanded },
+                        modifier = Modifier
+                            .size(38.dp)
+                            .testTag("toggle_search_button")
+                    ) {
+                        Icon(
+                            imageVector = if (isSearchExpanded) Icons.Default.Close else Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = if (isSearchExpanded) SaffronPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    // AI Tutor Shortcut
+                    if (onAiTutorClick != null) {
+                        IconButton(
+                            onClick = onAiTutorClick,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .testTag("top_bar_ai_tutor_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Vidya AI Tutor",
+                                tint = if (state.activeTab == AppTab.AI_TUTOR) SaffronPrimary else PeacockIndigo,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+
+                    // Info / Settings button
+                    IconButton(
+                        onClick = onOpenLiteModeInfo,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .testTag("top_bar_info_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "App Info & Lite Mode",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Row 2: Secondary Quick Filter Bar (Horizontally scrollable for all screen sizes)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+            ) {
+                // Lite Mode Toggle Chip
+                Surface(
+                    color = if (state.isLiteMode) EmeraldGreenLight else SurfaceContainerHigh,
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .height(32.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { onToggleLiteMode() }
+                        .testTag("toggle_lite_mode_btn")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (state.isLiteMode) Icons.Default.Bolt else Icons.Default.AllInclusive,
+                            contentDescription = null,
+                            tint = if (state.isLiteMode) EmeraldGreen else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = if (state.isLiteMode) "Lite Mode" else "Full Edition",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (state.isLiteMode) EmeraldGreen else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Class Grade Selector Chip
+                Box {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { showGradeMenu = true }
+                            .testTag("grade_selector_button")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        ) {
                             Text(
-                                text = "Indian Syllabus & Smart Notes",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = SaffronPrimary,
-                                fontWeight = FontWeight.SemiBold
+                                text = state.selectedGrade.displayName,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = showGradeMenu,
+                        onDismissRequest = { showGradeMenu = false }
+                    ) {
+                        ClassGrade.values().forEach { grade ->
+                            DropdownMenuItem(
+                                text = { Text(grade.displayName) },
+                                onClick = {
+                                    onGradeChange(grade)
+                                    showGradeMenu = false
+                                },
+                                leadingIcon = {
+                                    if (grade == state.selectedGrade) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = SaffronPrimary
+                                        )
+                                    }
+                                }
                             )
                         }
                     }
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Board & Class Badges (Dropdown triggers)
-                    Box {
-                        FilledTonalButton(
-                            onClick = { showGradeMenu = true },
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                            modifier = Modifier
-                                .height(34.dp)
-                                .testTag("grade_selector_button")
-                        ) {
-                            Text(
-                                text = state.selectedGrade.code,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = showGradeMenu,
-                            onDismissRequest = { showGradeMenu = false }
-                        ) {
-                            ClassGrade.values().forEach { grade ->
-                                DropdownMenuItem(
-                                    text = { Text(grade.displayName) },
-                                    onClick = {
-                                        onGradeChange(grade)
-                                        showGradeMenu = false
-                                    },
-                                    leadingIcon = {
-                                        if (grade == state.selectedGrade) {
-                                            Icon(
-                                                Icons.Default.Check,
-                                                contentDescription = null,
-                                                tint = SaffronPrimary
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Box {
-                        FilledTonalButton(
-                            onClick = { showBoardMenu = true },
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = PeacockIndigoLight,
-                                contentColor = PeacockIndigo
-                            ),
-                            modifier = Modifier
-                                .height(34.dp)
-                                .testTag("board_selector_button")
+                // Board Selector Chip
+                Box {
+                    Surface(
+                        color = PeacockIndigoLight,
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { showBoardMenu = true }
+                            .testTag("board_selector_button")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp)
                         ) {
                             Text(
                                 text = state.selectedBoard.shortName,
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = PeacockIndigo
                             )
                             Icon(
                                 imageVector = Icons.Default.ArrowDropDown,
                                 contentDescription = null,
+                                tint = PeacockIndigo,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
-
-                        DropdownMenu(
-                            expanded = showBoardMenu,
-                            onDismissRequest = { showBoardMenu = false }
-                        ) {
-                            BoardType.values().forEach { board ->
-                                DropdownMenuItem(
-                                    text = { Text(board.displayName) },
-                                    onClick = {
-                                        onBoardChange(board)
-                                        showBoardMenu = false
-                                    },
-                                    leadingIcon = {
-                                        if (board == state.selectedBoard) {
-                                            Icon(
-                                                Icons.Default.Check,
-                                                contentDescription = null,
-                                                tint = PeacockIndigo
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-                        }
                     }
 
-                    if (onAiTutorClick != null) {
-                        IconButton(
-                            onClick = onAiTutorClick,
-                            modifier = Modifier.testTag("top_bar_ai_tutor_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = "Vidya AI Tutor",
-                                tint = if (state.activeTab == AppTab.AI_TUTOR) SaffronPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                    DropdownMenu(
+                        expanded = showBoardMenu,
+                        onDismissRequest = { showBoardMenu = false }
+                    ) {
+                        BoardType.values().forEach { board ->
+                            DropdownMenuItem(
+                                text = { Text(board.displayName) },
+                                onClick = {
+                                    onBoardChange(board)
+                                    showBoardMenu = false
+                                },
+                                leadingIcon = {
+                                    if (board == state.selectedBoard) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = PeacockIndigo
+                                        )
+                                    }
+                                }
                             )
                         }
                     }
+                }
 
-                    IconButton(
-                        onClick = { isSearchExpanded = !isSearchExpanded },
-                        modifier = Modifier.testTag("toggle_search_button")
+                // Active Recall Cover Mode Toggle (visible when on Notebook tab)
+                if (state.activeTab == AppTab.NOTEBOOK) {
+                    Surface(
+                        color = if (state.isCoverRecallModeActive) SaffronLight else SurfaceContainerHigh,
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { onToggleRecallMode() }
+                            .testTag("toggle_active_recall_button")
                     ) {
-                        Icon(
-                            imageVector = if (isSearchExpanded) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Active Recall Cover Toggle (for Notebook tab)
-                    if (state.activeTab == AppTab.NOTEBOOK) {
-                        IconButton(
-                            onClick = onToggleRecallMode,
-                            modifier = Modifier.testTag("toggle_active_recall_button")
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp)
                         ) {
                             Icon(
                                 imageVector = if (state.isCoverRecallModeActive) Icons.Filled.VisibilityOff else Icons.Outlined.Visibility,
-                                contentDescription = "Active Recall Cover Mode",
-                                tint = if (state.isCoverRecallModeActive) SaffronPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                contentDescription = null,
+                                tint = if (state.isCoverRecallModeActive) SaffronPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (state.isCoverRecallModeActive) "Recall: ON" else "Recall: OFF",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (state.isCoverRecallModeActive) SaffronPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
             }
 
+            // Row 3: Animated Search Input
             AnimatedVisibility(visible = isSearchExpanded) {
                 OutlinedTextField(
                     value = state.searchQuery,
                     onValueChange = onSearchQueryChange,
                     placeholder = { Text("Search chapters, formulas, mnemonics...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     trailingIcon = {
                         if (state.searchQuery.isNotEmpty()) {
                             IconButton(onClick = { onSearchQueryChange("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
                             }
                         }
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
                         .testTag("top_search_text_field")
                 )
             }

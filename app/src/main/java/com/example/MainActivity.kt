@@ -81,6 +81,7 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                     onToggleRecallMode = { viewModel.toggleCoverRecallMode() },
                     onToggleLiteMode = { viewModel.toggleLiteMode() },
                     onOpenLiteModeInfo = { viewModel.openLiteModeInfoDialog() },
+                    onDismissNetworkNotice = { viewModel.dismissNetworkNotice() },
                     onBackClick = if (state.selectedChapter != null) {
                         { viewModel.selectChapter(null) }
                     } else null,

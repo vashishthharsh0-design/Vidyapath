@@ -37,6 +37,7 @@ fun AppTopBar(
     onToggleRecallMode: () -> Unit,
     onToggleLiteMode: () -> Unit = {},
     onOpenLiteModeInfo: () -> Unit = {},
+    onDismissNetworkNotice: () -> Unit = {},
     onBackClick: (() -> Unit)? = null,
     onAiTutorClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -206,6 +207,34 @@ fun AppTopBar(
                     .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
             ) {
+                // Live Network Status Chip (Auto-syncs with internet state)
+                Surface(
+                    color = if (state.isNetworkAvailable) EmeraldGreenLight.copy(alpha = 0.6f) else AmberWarningLight,
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .height(32.dp)
+                        .testTag("network_status_chip")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .clip(CircleShape)
+                                .background(if (state.isNetworkAvailable) EmeraldGreen else AmberWarning)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = if (state.isNetworkAvailable) "Online" else "Offline",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (state.isNetworkAvailable) EmeraldGreen else AmberWarning
+                        )
+                    }
+                }
+
                 // Lite Mode Toggle Chip
                 Surface(
                     color = if (state.isLiteMode) EmeraldGreenLight else SurfaceContainerHigh,
@@ -373,6 +402,54 @@ fun AppTopBar(
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = if (state.isCoverRecallModeActive) SaffronPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Animated Network Notice Banner (Appears when network state changes or modes switch)
+            AnimatedVisibility(visible = state.networkNoticeMessage != null) {
+                Surface(
+                    color = if (state.isNetworkAvailable) EmeraldGreenLight else AmberWarningLight,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                        .testTag("network_notice_banner")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = if (state.isNetworkAvailable) Icons.Default.Wifi else Icons.Default.WifiOff,
+                                contentDescription = null,
+                                tint = if (state.isNetworkAvailable) EmeraldGreen else AmberWarning,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = state.networkNoticeMessage ?: "",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (state.isNetworkAvailable) EmeraldGreen else AmberWarning
+                            )
+                        }
+                        IconButton(
+                            onClick = onDismissNetworkNotice,
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Dismiss notice",
+                                tint = if (state.isNetworkAvailable) EmeraldGreen else AmberWarning,
+                                modifier = Modifier.size(15.dp)
                             )
                         }
                     }

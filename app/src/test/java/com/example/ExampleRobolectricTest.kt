@@ -46,5 +46,22 @@ class ExampleRobolectricTest {
     val firstQuestion = accountancyPaper.sections.first().questions.first()
     assertTrue("Question should have CBSE step marking scheme", firstQuestion.cbseMarkingScheme.isNotEmpty())
   }
+
+  @Test
+  fun `verify AI response generator provides comprehensive academic guidance`() = kotlinx.coroutines.runBlocking {
+    val result = com.example.data.GeminiChatRepository.generateAiResponse(
+        conversationHistory = emptyList(),
+        userMessage = "Explain CBSE 5 mark marking scheme and partnership goodwill valuation",
+        persona = com.example.model.AiTutorPersona.GENERAL_CBSE,
+        isSearchGroundingEnabled = false,
+        grade = ClassGrade.CLASS_12_COMMERCE,
+        board = com.example.model.BoardType.CBSE
+    )
+    assertTrue("AI generation should succeed", result.isSuccess)
+    val reply = result.getOrNull()
+    assertTrue("Reply should not be null", reply != null)
+    assertTrue("Reply text should be non-empty", reply!!.text.isNotBlank())
+    assertTrue("Reply should mention marking or syllabus content", reply.text.contains("Mark") || reply.text.contains("CBSE") || reply.text.contains("Partnership"))
+  }
 }
 

@@ -11,6 +11,7 @@ import com.example.data.SyllabusRepository
 import com.example.data.TestPaperGeneratorRepository
 import com.example.data.local.AppDatabase
 import com.example.model.*
+import com.example.util.NetworkMonitor
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -45,9 +46,12 @@ data class MainUiState(
     val paperForPdfExport: TestPaperItem? = null,
     val showTestPaperGenerateDialog: Boolean = false,
     val testPaperGenerationError: String? = null,
-    val isLiteMode: Boolean = true,
+    val isLiteMode: Boolean = false,
     val showLiteModeInfoDialog: Boolean = false,
     val dataSavedMegabytes: Double = 148.5,
+    val isNetworkAvailable: Boolean = true,
+    val isAutoNetworkSwitchingEnabled: Boolean = true,
+    val networkNoticeMessage: String? = null,
     val videoFilterSubject: SubjectType? = null,
     val videoFilterCategory: VideoCategory = VideoCategory.ALL,
     val videoSearchQuery: String = "",
@@ -81,11 +85,50 @@ enum class AppTab(val title: String, val iconKey: String) {
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getDatabase(application)
     private val repository = NoteRepository(database.noteDao(), database.flashcardDao())
+    private val networkMonitor = NetworkMonitor(application)
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
+        // Set initial state based on current device network connectivity
+        val initialOnline = networkMonitor.isCurrentlyOnline()
+        _uiState.update {
+            it.copy(
+                isNetworkAvailable = initialOnline,
+                isLiteMode = !initialOnline
+            )
+        }
+
+        // Automatically switch between Lite Mode and Full Mode when internet goes ON or OFF
+        viewModelScope.launch {
+            networkMonitor.isOnline.collect { online ->
+                _uiState.update { current ->
+                    if (current.isAutoNetworkSwitchingEnabled) {
+                        val newLite = !online
+                        val targetTab = if (newLite && (current.activeTab == AppTab.VIDEOS || current.activeTab == AppTab.NOTE_METHODS || current.activeTab == AppTab.EXAM_TRICKS)) {
+                            AppTab.SYLLABUS
+                        } else {
+                            current.activeTab
+                        }
+                        val notice = if (online) {
+                            "🌐 Internet Connected: Switched to Full Edition automatically"
+                        } else {
+                            "⚡ Internet Disconnected: Switched to Offline Lite Mode automatically"
+                        }
+                        current.copy(
+                            isNetworkAvailable = online,
+                            isLiteMode = newLite,
+                            activeTab = targetTab,
+                            networkNoticeMessage = notice
+                        )
+                    } else {
+                        current.copy(isNetworkAvailable = online)
+                    }
+                }
+            }
+        }
+
         viewModelScope.launch {
             repository.seedInitialFlashcardsIfEmpty(MnemonicsRepository.seedFlashcards)
         }
@@ -354,7 +397,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             current.copy(
                 isLiteMode = newLite,
-                activeTab = targetTab
+                activeTab = targetTab,
+                networkNoticeMessage = if (newLite) "⚡ Switched to Offline Lite Mode" else "🌐 Switched to Full Edition"
+            )
+        }
+    }
+
+    fun dismissNetworkNotice() {
+        _uiState.update { it.copy(networkNoticeMessage = null) }
+    }
+
+    fun toggleAutoNetworkSwitching() {
+        _uiState.update { current ->
+            val next = !current.isAutoNetworkSwitchingEnabled
+            current.copy(
+                isAutoNetworkSwitchingEnabled = next,
+                networkNoticeMessage = if (next) "Auto network switching enabled (Lite on offline, Full on online)" else "Auto network switching paused"
             )
         }
     }

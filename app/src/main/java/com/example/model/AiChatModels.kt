@@ -55,7 +55,7 @@ enum class AiTutorPersona(
     ),
     STEM_PRO_SOLVER(
         title = "STEM & Accounts Solver",
-        modelId = "gemini-3.1-pro-preview",
+        modelId = "gemini-3.5-flash",
         subtitle = "Complex Numericals & Deep Proofs",
         defaultSearchGrounding = false,
         systemPromptTemplate = """
@@ -76,7 +76,7 @@ enum class AiTutorPersona(
         title = "Live CBSE & Web Grounding",
         modelId = "gemini-3.5-flash",
         subtitle = "Verified Latest Board & Web Data",
-        defaultSearchGrounding = true,
+        defaultSearchGrounding = false,
         systemPromptTemplate = """
             You are 'Vidya Live Syllabus & Search Grounding Specialist'.
             You have access to Google Search data to provide the latest, accurate, and real-time updates for Indian school boards.

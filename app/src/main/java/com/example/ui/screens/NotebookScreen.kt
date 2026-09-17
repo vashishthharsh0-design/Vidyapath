@@ -37,6 +37,7 @@ fun NotebookScreen(
     onSubjectFilterChange: (String) -> Unit,
     onToggleRecallMode: () -> Unit,
     onAddNewNote: () -> Unit,
+    onGenerateCrux: (NoteEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -224,6 +225,7 @@ fun NotebookScreen(
                     onClick = { onNoteClick(note) },
                     onTogglePin = { onTogglePin(note.id) },
                     onDelete = { noteToDelete = note },
+                    onGenerateCrux = { onGenerateCrux(note) },
                     onShare = {
                         val shareText = buildString {
                             appendLine("📚 ${note.title}")
@@ -290,6 +292,7 @@ fun UserNoteCard(
     onTogglePin: () -> Unit,
     onDelete: () -> Unit,
     onShare: () -> Unit,
+    onGenerateCrux: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isRevealedLocally by remember { mutableStateOf(false) }
@@ -352,6 +355,20 @@ fun UserNoteCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onGenerateCrux,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .testTag("note_ai_crux_${note.id}")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "AI Crux & Highlights",
+                            tint = SaffronPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
                     IconButton(
                         onClick = onTogglePin,
                         modifier = Modifier.size(32.dp)
@@ -496,13 +513,37 @@ fun UserNoteCard(
                 if (note.summaryOrConclusion.isNotBlank()) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "💡 Summary: ${note.summaryOrConclusion}",
+                        text = "💡 Summary / Crux: ${note.summaryOrConclusion}",
                         style = MaterialTheme.typography.labelSmall,
                         color = EmeraldGreen,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
+                } else {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(SaffronLight)
+                            .clickable { onGenerateCrux() }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = SaffronPrimary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Generate Gemini Crux & Highlights",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = SaffronDark
+                        )
+                    }
                 }
             }
 

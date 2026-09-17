@@ -3,6 +3,7 @@ package com.example.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,8 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.model.NoteCruxSummary
 import com.example.model.NoteEntity
 import com.example.model.NoteMethodType
+import com.example.ui.components.NoteCruxSummaryDialog
 import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +30,10 @@ fun NotesEditorScreen(
     onSave: (NoteEntity) -> Unit,
     onCancel: () -> Unit,
     onConvertToFlashcard: (question: String, answer: String, subject: String, chapter: String, mnemonic: String) -> Unit,
+    isSummarizingCrux: Boolean = false,
+    activeCruxSummary: NoteCruxSummary? = null,
+    onGenerateCrux: ((title: String, subject: String, chapter: String, mainContent: String, cues: String) -> Unit)? = null,
+    onDismissCruxDialog: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var title by remember { mutableStateOf(initialNote.title) }
@@ -62,6 +69,28 @@ fun NotesEditorScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = {
+                            onGenerateCrux?.invoke(title, subject, chapter, mainContent, cues)
+                        },
+                        enabled = !isSummarizingCrux,
+                        modifier = Modifier.testTag("editor_top_crux_button")
+                    ) {
+                        if (isSummarizingCrux) {
+                            CircularProgressIndicator(
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(20.dp),
+                                color = SaffronPrimary
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Generate AI Crux",
+                                tint = SaffronPrimary
+                            )
+                        }
+                    }
+
                     IconButton(
                         onClick = { isPinned = !isPinned },
                         modifier = Modifier.testTag("editor_pin_button")
@@ -199,6 +228,88 @@ fun NotesEditorScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("+ Formula", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            }
+
+            // AI Crux & Key Highlights Generator Banner
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = SaffronLight),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("editor_ai_crux_banner")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(SaffronPrimary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "Gemini AI Crux & Highlights",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = SaffronDark
+                            )
+                            Text(
+                                text = "Extract executive crux, formulas & Cornell recall cues",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            onGenerateCrux?.invoke(title, subject, chapter, mainContent, cues)
+                        },
+                        enabled = !isSummarizingCrux,
+                        colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.testTag("editor_generate_crux_button")
+                    ) {
+                        if (isSummarizingCrux) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Analyzing...", style = MaterialTheme.typography.labelSmall)
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Bolt,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Get Crux", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -432,6 +543,24 @@ fun NotesEditorScreen(
                 TextButton(onClick = { showFlashcardSuccessDialog = false }) {
                     Text("OK", fontWeight = FontWeight.Bold)
                 }
+            }
+        )
+    }
+
+    if (activeCruxSummary != null) {
+        NoteCruxSummaryDialog(
+            summary = activeCruxSummary,
+            onApplyToSummary = { newSummary ->
+                summary = newSummary
+                onDismissCruxDialog?.invoke()
+            },
+            onApplySummaryAndCues = { newSummary, newCues ->
+                summary = newSummary
+                cues = if (cues.isBlank()) newCues else "$cues\n\n$newCues"
+                onDismissCruxDialog?.invoke()
+            },
+            onDismiss = {
+                onDismissCruxDialog?.invoke()
             }
         )
     }

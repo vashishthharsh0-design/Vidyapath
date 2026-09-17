@@ -63,5 +63,63 @@ class ExampleRobolectricTest {
     assertTrue("Reply text should be non-empty", reply!!.text.isNotBlank())
     assertTrue("Reply should mention marking or syllabus content", reply.text.contains("Mark") || reply.text.contains("CBSE") || reply.text.contains("Partnership"))
   }
+
+  @Test
+  fun `verify student notes summarization produces executive crux, key highlights, and active recall cues`() = kotlinx.coroutines.runBlocking {
+    val sampleNoteContent = """
+      Ohm's Law states that the current flowing through a conductor is directly proportional to the potential difference across its ends, provided temperature remains constant.
+      • V = I * R
+      • Resistance depends on length, cross-sectional area, and material resistivity.
+      • SI unit of resistance is Ohm (Ω).
+      • In series combination: R_eq = R1 + R2 + R3.
+      • In parallel combination: 1/R_eq = 1/R1 + 1/R2 + 1/R3.
+      Board Exam Trap: Temperature must be explicitly stated as constant to secure full 2 marks!
+    """.trimIndent()
+
+    val result = com.example.data.GeminiChatRepository.summarizeStudentNotes(
+        title = "Ohm's Law and Resistance",
+        subject = "Physics",
+        chapter = "Electricity",
+        mainContent = sampleNoteContent,
+        cues = "What is Ohm's law?\nHow does resistance vary with temperature?",
+        grade = "Class 10",
+        board = "CBSE"
+    )
+
+    assertTrue("Crux generation must succeed", result.isSuccess)
+    val crux = result.getOrNull()
+    assertTrue("Crux object should not be null", crux != null)
+    assertTrue("Executive crux should be non-empty", crux!!.executiveCrux.isNotBlank())
+    assertTrue("Key highlights should contain elements", crux.keyHighlights.isNotEmpty())
+    assertTrue("Exam cues should contain questions", crux.examCues.isNotEmpty())
+
+    val formatted = crux.toFormattedSummary()
+    assertTrue("Formatted summary must contain EXECUTIVE CRUX", formatted.contains("EXECUTIVE CRUX"))
+    assertTrue("Formatted summary must contain KEY HIGHLIGHTS", formatted.contains("KEY HIGHLIGHTS"))
+  }
+
+  @Test
+  fun `verify NoteEntity overload generates valid summary for existing note`() = kotlinx.coroutines.runBlocking {
+    val note = com.example.model.NoteEntity(
+        id = 42L,
+        title = "Goodwill Valuation Methods in Partnership",
+        subject = "Accountancy",
+        chapter = "Partnership Fundamentals",
+        methodType = "CORNELL",
+        cueOrKeywordColumn = "Average Profit vs Super Profit?",
+        mainContent = "Average Profit Method = Total Normal Profit / Number of Years. Super Profit = Actual Average Profit - Normal Profit. Goodwill = Super Profit * Number of Years Purchase.",
+        summaryOrConclusion = "",
+        tags = "#Accounts, #Class12",
+        grade = "Class 12",
+        board = "CBSE"
+    )
+
+    val result = com.example.data.GeminiChatRepository.summarizeStudentNote(note)
+    assertTrue("NoteEntity crux generation should succeed", result.isSuccess)
+    val crux = result.getOrThrow()
+    assertEquals("Goodwill Valuation Methods in Partnership", crux.title)
+    assertTrue("Executive crux should summarize partnership concept", crux.executiveCrux.isNotBlank())
+    assertTrue("Highlights should exist", crux.keyHighlights.isNotEmpty())
+  }
 }
 

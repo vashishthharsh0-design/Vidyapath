@@ -24,6 +24,7 @@ import com.example.model.NoteMethodType
 import com.example.ui.components.AppBottomNav
 import com.example.ui.components.AppTopBar
 import com.example.ui.components.LiteModeInfoDialog
+import com.example.ui.components.NoteCruxSummaryDialog
 import com.example.ui.screens.*
 import com.example.ui.theme.VidyaNotesTheme
 import com.example.viewmodel.AppTab
@@ -67,7 +68,13 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
             onCancel = { viewModel.closeNoteEditor() },
             onConvertToFlashcard = { q, a, subj, chap, mnem ->
                 viewModel.createFlashcardFromNote(subj, chap, q, a, mnem)
-            }
+            },
+            isSummarizingCrux = state.isSummarizingNote,
+            activeCruxSummary = if (state.noteCruxTargetNoteId == null) state.activeNoteCruxSummary else null,
+            onGenerateCrux = { title, subj, chap, content, cues ->
+                viewModel.generateNoteCrux(title, subj, chap, content, cues)
+            },
+            onDismissCruxDialog = { viewModel.dismissNoteCruxDialog() }
         )
     } else {
         Scaffold(
@@ -261,7 +268,8 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                                     onDeleteNote = { viewModel.deleteNote(it) },
                                     onSubjectFilterChange = { viewModel.setNoteFilterSubject(it) },
                                     onToggleRecallMode = { viewModel.toggleCoverRecallMode() },
-                                    onAddNewNote = { viewModel.openNewNoteEditor() }
+                                    onAddNewNote = { viewModel.openNewNoteEditor() },
+                                    onGenerateCrux = { viewModel.generateNoteCruxForExistingNote(it) }
                                 )
                             }
 
@@ -296,6 +304,19 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
             dataSavedMb = state.dataSavedMegabytes,
             onToggleLiteMode = { viewModel.toggleLiteMode() },
             onDismiss = { viewModel.closeLiteModeInfoDialog() }
+        )
+    }
+
+    if (state.activeNoteCruxSummary != null && state.noteCruxTargetNoteId != null) {
+        NoteCruxSummaryDialog(
+            summary = state.activeNoteCruxSummary!!,
+            onApplyToSummary = { summaryText ->
+                viewModel.applyCruxToTargetNote(summaryText)
+            },
+            onApplySummaryAndCues = { summaryText, cuesText ->
+                viewModel.applyCruxToTargetNote(summaryText, cuesText)
+            },
+            onDismiss = { viewModel.dismissNoteCruxDialog() }
         )
     }
 }

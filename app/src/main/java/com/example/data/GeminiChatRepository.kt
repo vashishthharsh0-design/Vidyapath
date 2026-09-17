@@ -495,4 +495,316 @@ object GeminiChatRepository {
             }
         }
     }
+
+    /**
+     * Sends student notes to the Gemini API to generate a summarized 'crux' and key highlights.
+     * Features multi-tier failover (gemini-3.5-flash -> gemini-3.1-flash-lite-preview -> offline intelligent curriculum engine).
+     */
+    suspend fun summarizeStudentNotes(
+        title: String,
+        subject: String,
+        chapter: String,
+        mainContent: String,
+        cues: String = "",
+        grade: String = "Class 10",
+        board: String = "CBSE"
+    ): Result<NoteCruxSummary> = withContext(Dispatchers.IO) {
+        val apiKey = BuildConfig.GEMINI_API_KEY.trim()
+
+        // If offline or placeholder API key, use curriculum-aware local extraction
+        if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY") {
+            Log.i(TAG, "Using offline crux generation engine for note: $title")
+            return@withContext Result.success(
+                generateOfflineNoteCrux(title, subject, chapter, mainContent, cues, grade, board)
+            )
+        }
+
+        val systemInstruction = """
+You are an expert Indian curriculum academic mentor and summarizer (NCERT, CBSE, ICSE, State Boards).
+Your objective is to read a student's study notes and generate an exceptionally sharp, high-retention 'Crux' & Revision Highlights:
+1. "executiveCrux": A crisp 2-3 sentence executive crux capturing the fundamental law, mechanism, concept, or mathematical/accounting thesis.
+2. "keyHighlights": An array of 3-5 concise, high-yield bullet points featuring essential keywords, core definitions, reaction equations, or examiner trap alerts.
+3. "examCues": An array of 2-3 sharp active-recall questions suitable for Cornell note cue margins.
+4. "highYieldFormulasOrTerms": An array of key formulas, SI units, reaction equations, or essential academic terminology extracted from the notes.
+
+You MUST respond strictly with a valid JSON object matching this schema:
+{
+  "executiveCrux": "2-3 sentence core concept summary",
+  "keyHighlights": ["Highlight 1", "Highlight 2", "Highlight 3"],
+  "examCues": ["Question 1?", "Question 2?"],
+  "highYieldFormulasOrTerms": ["Formula / Term 1", "Formula / Term 2"]
+}
+""".trimIndent()
+
+        val prompt = buildString {
+            appendLine("STUDENT NOTE METADATA:")
+            appendLine("• Topic / Title: ${title.ifBlank { "Untitled Note" }}")
+            appendLine("• Subject: ${subject.ifBlank { "General" }}")
+            if (chapter.isNotBlank()) appendLine("• Chapter: $chapter")
+            appendLine("• Curriculum: $board ($grade)")
+            if (cues.isNotBlank()) {
+                appendLine()
+                appendLine("EXISTING CUES / KEYWORDS:")
+                appendLine(cues)
+            }
+            appendLine()
+            appendLine("STUDENT NOTE CONTENT:")
+            appendLine(mainContent.ifBlank { title })
+        }
+
+        // Tier 1: Primary call with gemini-3.5-flash (Standard Task Model)
+        val primaryResult = executeSummarizeApiCall(apiKey, "gemini-3.5-flash", systemInstruction, prompt, title)
+        if (primaryResult.isSuccess) {
+            return@withContext primaryResult
+        }
+
+        // Tier 2: Backup fast call with gemini-3.1-flash-lite-preview
+        Log.w(TAG, "Primary crux summarization failed, trying gemini-3.1-flash-lite-preview")
+        val backupResult = executeSummarizeApiCall(apiKey, "gemini-3.1-flash-lite-preview", systemInstruction, prompt, title)
+        if (backupResult.isSuccess) {
+            return@withContext backupResult
+        }
+
+        // Tier 3: Resilient offline curriculum knowledge fallback
+        Log.w(TAG, "Online endpoints failed for summarization. Serving offline crux extraction.")
+        Result.success(
+            generateOfflineNoteCrux(title, subject, chapter, mainContent, cues, grade, board)
+        )
+    }
+
+    /**
+     * Overload to summarize a NoteEntity directly
+     */
+    suspend fun summarizeStudentNote(note: NoteEntity): Result<NoteCruxSummary> = summarizeStudentNotes(
+        title = note.title,
+        subject = note.subject,
+        chapter = note.chapter,
+        mainContent = note.mainContent,
+        cues = note.cueOrKeywordColumn,
+        grade = note.grade,
+        board = note.board
+    )
+
+    private fun executeSummarizeApiCall(
+        apiKey: String,
+        modelId: String,
+        systemInstruction: String,
+        prompt: String,
+        noteTitle: String
+    ): Result<NoteCruxSummary> {
+        return try {
+            val url = "$BASE_URL$modelId:generateContent?key=$apiKey"
+            val requestJson = JSONObject()
+
+            // System Instruction
+            val systemInstructionObj = JSONObject()
+            val systemPartsArray = JSONArray().put(JSONObject().put("text", systemInstruction))
+            systemInstructionObj.put("parts", systemPartsArray)
+            requestJson.put("systemInstruction", systemInstructionObj)
+
+            // Contents
+            val contentsArray = JSONArray()
+            val currentTurn = JSONObject()
+            currentTurn.put("role", "user")
+            val currentParts = JSONArray().put(JSONObject().put("text", prompt))
+            currentTurn.put("parts", currentParts)
+            contentsArray.put(currentTurn)
+            requestJson.put("contents", contentsArray)
+
+            // Generation Config with application/json
+            val genConfig = JSONObject()
+            genConfig.put("temperature", 0.3)
+            genConfig.put("responseMimeType", "application/json")
+            requestJson.put("generationConfig", genConfig)
+
+            val body = requestJson.toString().toRequestBody(JSON_MEDIA_TYPE)
+            val request = Request.Builder()
+                .url(url)
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+            val responseBodyString = response.body?.string()
+
+            if (!response.isSuccessful || responseBodyString.isNullOrBlank()) {
+                Log.w(TAG, "Gemini $modelId note summarization failed HTTP ${response.code}: $responseBodyString")
+                return Result.failure(Exception("HTTP ${response.code}"))
+            }
+
+            val rootJson = JSONObject(responseBodyString)
+            val candidates = rootJson.optJSONArray("candidates") ?: return Result.failure(Exception("No candidates"))
+            if (candidates.length() == 0) return Result.failure(Exception("Empty candidates"))
+            val firstCandidate = candidates.getJSONObject(0)
+            val content = firstCandidate.optJSONObject("content") ?: return Result.failure(Exception("No content"))
+            val parts = content.optJSONArray("parts") ?: return Result.failure(Exception("No parts"))
+            if (parts.length() == 0) return Result.failure(Exception("Empty parts"))
+
+            val text = parts.getJSONObject(0).optString("text", "")
+            val summary = parseCruxJsonResponse(text, noteTitle, modelId)
+            Result.success(summary)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error executing note summarization on $modelId: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    private fun parseCruxJsonResponse(rawText: String, noteTitle: String, modelId: String): NoteCruxSummary {
+        val cleanJson = rawText.trim()
+            .removePrefix("```json")
+            .removePrefix("```JSON")
+            .removePrefix("```")
+            .removeSuffix("```")
+            .trim()
+
+        return try {
+            val obj = JSONObject(cleanJson)
+            val crux = obj.optString("executiveCrux", "").ifBlank {
+                obj.optString("crux", "")
+            }
+            val highlights = mutableListOf<String>()
+            val hlArray = obj.optJSONArray("keyHighlights") ?: obj.optJSONArray("highlights")
+            if (hlArray != null) {
+                for (i in 0 until hlArray.length()) {
+                    val item = hlArray.optString(i, "").trim()
+                    if (item.isNotBlank()) highlights.add(item)
+                }
+            }
+
+            val cues = mutableListOf<String>()
+            val cuesArray = obj.optJSONArray("examCues") ?: obj.optJSONArray("cues")
+            if (cuesArray != null) {
+                for (i in 0 until cuesArray.length()) {
+                    val item = cuesArray.optString(i, "").trim()
+                    if (item.isNotBlank()) cues.add(item)
+                }
+            }
+
+            val formulas = mutableListOf<String>()
+            val formArray = obj.optJSONArray("highYieldFormulasOrTerms") ?: obj.optJSONArray("formulas")
+            if (formArray != null) {
+                for (i in 0 until formArray.length()) {
+                    val item = formArray.optString(i, "").trim()
+                    if (item.isNotBlank()) formulas.add(item)
+                }
+            }
+
+            NoteCruxSummary(
+                title = noteTitle,
+                executiveCrux = crux.ifBlank { "Core review crux extracted from $noteTitle" },
+                keyHighlights = if (highlights.isNotEmpty()) highlights else listOf("Primary concept summarized from study notes"),
+                examCues = cues,
+                highYieldFormulasOrTerms = formulas,
+                modelUsed = modelId,
+                isOfflineGenerated = false
+            )
+        } catch (e: Exception) {
+            parseCruxMarkdownFallback(cleanJson, noteTitle, modelId)
+        }
+    }
+
+    private fun parseCruxMarkdownFallback(rawText: String, noteTitle: String, modelId: String): NoteCruxSummary {
+        val lines = rawText.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val highlights = mutableListOf<String>()
+        val cues = mutableListOf<String>()
+        val formulas = mutableListOf<String>()
+        var crux = ""
+
+        for (line in lines) {
+            val lower = line.lowercase()
+            when {
+                lower.startsWith("•") || lower.startsWith("-") || lower.startsWith("*") -> {
+                    highlights.add(line.removePrefix("•").removePrefix("-").removePrefix("*").trim())
+                }
+                lower.startsWith("?") || lower.contains("?") -> {
+                    cues.add(line)
+                }
+                lower.contains("=") || lower.contains("→") || lower.contains("formula") -> {
+                    formulas.add(line)
+                }
+                crux.isBlank() && !line.startsWith("#") -> {
+                    crux = line
+                }
+            }
+        }
+
+        return NoteCruxSummary(
+            title = noteTitle,
+            executiveCrux = crux.ifBlank { rawText.take(220) },
+            keyHighlights = if (highlights.isNotEmpty()) highlights.take(5) else listOf("Key highlight extracted from student notes"),
+            examCues = cues.take(3),
+            highYieldFormulasOrTerms = formulas.take(4),
+            modelUsed = "$modelId (Text Parsed)",
+            isOfflineGenerated = false
+        )
+    }
+
+    fun generateOfflineNoteCrux(
+        title: String,
+        subject: String,
+        chapter: String,
+        mainContent: String,
+        cues: String,
+        grade: String,
+        board: String
+    ): NoteCruxSummary {
+        val cleanContent = mainContent.ifBlank { title }
+        val lines = cleanContent.lines().map { it.trim() }.filter { it.isNotEmpty() }
+
+        // Extract high yield lines: bullet points, equations, or definitions
+        val highlights = mutableListOf<String>()
+        val formulas = mutableListOf<String>()
+        val extractedCues = mutableListOf<String>()
+
+        for (line in lines) {
+            val lower = line.lowercase()
+            if (line.startsWith("•") || line.startsWith("-") || line.startsWith("1.") || line.startsWith("2.") || line.startsWith("3.")) {
+                val clean = line.replace(Regex("^[•\\-*\\d.]+\\s*"), "")
+                if (clean.length in 12..200 && highlights.size < 5) {
+                    highlights.add(clean)
+                }
+            }
+            if (line.contains("=") || line.contains("→") || line.contains("->") || line.contains("ATP") || line.contains("CO2") || line.contains("O2")) {
+                if (formulas.size < 4) {
+                    formulas.add(line.replace(Regex("^[•\\-*\\d.]+\\s*"), ""))
+                }
+            }
+        }
+
+        // If not enough bullet points found, extract sentences
+        if (highlights.isEmpty()) {
+            val sentences = cleanContent.split(Regex("[.!?\n]"))
+                .map { it.trim() }
+                .filter { it.length > 20 }
+            highlights.addAll(sentences.take(3))
+        }
+
+        if (highlights.isEmpty()) {
+            highlights.add("Essential study point: Focus on NCERT textbook definitions and diagrams for $title.")
+            highlights.add("Board Exam Tip: Remember step-by-step presentation to maximize evaluation marks.")
+        }
+
+        // Generate Cornell active recall cues
+        if (cues.isNotBlank()) {
+            cues.lines().map { it.trim() }.filter { it.isNotBlank() }.take(3).forEach { extractedCues.add(it) }
+        } else {
+            extractedCues.add("What is the core definition and physical/chemical mechanism of $title?")
+            extractedCues.add("Which common board exam traps or numerical formulas are associated with this topic?")
+        }
+
+        val executiveCrux = if (lines.isNotEmpty() && lines.first().length > 20 && !lines.first().startsWith("#")) {
+            lines.first()
+        } else {
+            "Fundamental $board ($grade) conceptual crux for $title in $subject: Master the core NCERT principles, key terminology, and step marking schemes."
+        }
+
+        return NoteCruxSummary(
+            title = title.ifBlank { "Study Note" },
+            executiveCrux = executiveCrux,
+            keyHighlights = highlights,
+            examCues = extractedCues,
+            highYieldFormulasOrTerms = formulas,
+            modelUsed = "Offline NCERT Knowledge Engine ⚡",
+            isOfflineGenerated = true
+        )
+    }
 }

@@ -68,7 +68,10 @@ data class MainUiState(
     val isAiSearchGroundingEnabled: Boolean = false,
     val isAiGenerating: Boolean = false,
     val aiContextChapter: ChapterItem? = null,
-    val aiInputText: String = ""
+    val aiInputText: String = "",
+    val isSummarizingNote: Boolean = false,
+    val activeNoteCruxSummary: NoteCruxSummary? = null,
+    val noteCruxTargetNoteId: Long? = null
 )
 
 enum class AppTab(val title: String, val iconKey: String) {
@@ -234,6 +237,77 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.togglePin(noteId)
         }
+    }
+
+    fun generateNoteCrux(
+        title: String,
+        subject: String,
+        chapter: String,
+        mainContent: String,
+        cues: String = "",
+        targetNoteId: Long? = null,
+        onComplete: ((NoteCruxSummary) -> Unit)? = null
+    ) {
+        _uiState.update { it.copy(isSummarizingNote = true) }
+        viewModelScope.launch {
+            val result = GeminiChatRepository.summarizeStudentNotes(
+                title = title,
+                subject = subject,
+                chapter = chapter,
+                mainContent = mainContent,
+                cues = cues,
+                grade = _uiState.value.selectedGrade.displayName,
+                board = _uiState.value.selectedBoard.shortName
+            )
+            val summary = result.getOrNull() ?: GeminiChatRepository.generateOfflineNoteCrux(
+                title, subject, chapter, mainContent, cues,
+                _uiState.value.selectedGrade.displayName,
+                _uiState.value.selectedBoard.shortName
+            )
+            _uiState.update {
+                it.copy(
+                    isSummarizingNote = false,
+                    activeNoteCruxSummary = summary,
+                    noteCruxTargetNoteId = targetNoteId
+                )
+            }
+            onComplete?.invoke(summary)
+        }
+    }
+
+    fun generateNoteCruxForExistingNote(note: NoteEntity) {
+        generateNoteCrux(
+            title = note.title,
+            subject = note.subject,
+            chapter = note.chapter,
+            mainContent = note.mainContent,
+            cues = note.cueOrKeywordColumn,
+            targetNoteId = note.id
+        )
+    }
+
+    fun applyCruxToTargetNote(cruxText: String, cuesText: String? = null) {
+        val targetId = _uiState.value.noteCruxTargetNoteId
+        if (targetId != null) {
+            viewModelScope.launch {
+                val existing = repository.getNoteById(targetId)
+                if (existing != null) {
+                    val updated = existing.copy(
+                        summaryOrConclusion = cruxText,
+                        cueOrKeywordColumn = if (!cuesText.isNullOrBlank()) cuesText else existing.cueOrKeywordColumn,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    repository.saveNote(updated)
+                }
+                _uiState.update { it.copy(activeNoteCruxSummary = null, noteCruxTargetNoteId = null) }
+            }
+        } else {
+            _uiState.update { it.copy(activeNoteCruxSummary = null, noteCruxTargetNoteId = null) }
+        }
+    }
+
+    fun dismissNoteCruxDialog() {
+        _uiState.update { it.copy(activeNoteCruxSummary = null, noteCruxTargetNoteId = null) }
     }
 
     fun toggleFlashcardMastery(cardId: Long, currentStatus: Boolean) {

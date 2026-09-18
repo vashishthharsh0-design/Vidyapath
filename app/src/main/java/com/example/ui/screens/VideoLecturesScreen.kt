@@ -93,11 +93,12 @@ fun VideoLecturesScreen(
                 SubjectType.BIOLOGY,
                 SubjectType.MATHEMATICS
             )
-            ClassGrade.CLASS_10, ClassGrade.CLASS_9 -> listOf(
+            ClassGrade.CLASS_10, ClassGrade.CLASS_9, ClassGrade.CLASS_8, ClassGrade.CLASS_7, ClassGrade.CLASS_6 -> listOf(
                 SubjectType.SCIENCE_GENERAL,
                 SubjectType.MATHEMATICS,
                 SubjectType.HISTORY,
-                SubjectType.POLITY
+                SubjectType.POLITY,
+                SubjectType.GEOGRAPHY
             )
             ClassGrade.COMPETITIVE -> listOf(
                 SubjectType.ACCOUNTANCY,

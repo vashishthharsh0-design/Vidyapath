@@ -22,6 +22,8 @@ val VioletPurple = Color(0xFF7C3AED)
 val VioletPurpleLight = Color(0xFFF5F3FF)
 val CrimsonRed = Color(0xFFDC2626)
 val CrimsonRedLight = Color(0xFFFEF2F2)
+val TealDark = Color(0xFF0D9488)
+val TealLight = Color(0xFFCCFBF1)
 
 // Surface and Backgrounds
 val ParchmentLight = Color(0xFFF8FAFC)

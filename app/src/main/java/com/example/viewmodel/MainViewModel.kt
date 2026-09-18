@@ -71,7 +71,11 @@ data class MainUiState(
     val aiInputText: String = "",
     val isSummarizingNote: Boolean = false,
     val activeNoteCruxSummary: NoteCruxSummary? = null,
-    val noteCruxTargetNoteId: Long? = null
+    val noteCruxTargetNoteId: Long? = null,
+    val selectedNcertBook: NcertBook? = null,
+    val ncertSearchQuery: String = "",
+    val ncertFilterSubject: SubjectType? = null,
+    val selectedNcertChapter: NcertChapterInfo? = null
 )
 
 enum class AppTab(val title: String, val iconKey: String) {
@@ -82,7 +86,8 @@ enum class AppTab(val title: String, val iconKey: String) {
     NOTEBOOK("Notebook", "EditNote"),
     NOTE_METHODS("Methods", "Lightbulb"),
     EXAM_TRICKS("Tricks", "Bolt"),
-    FLASHCARDS("Cards", "Style")
+    FLASHCARDS("Cards", "Style"),
+    NCERT("NCERT", "Folder")
 }
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -171,6 +176,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectChapter(chapter: ChapterItem?) {
         _uiState.update { it.copy(selectedChapter = chapter) }
+    }
+
+    fun setNcertSearchQuery(query: String) {
+        _uiState.update { it.copy(ncertSearchQuery = query) }
+    }
+
+    fun setNcertFilterSubject(subject: SubjectType?) {
+        _uiState.update { it.copy(ncertFilterSubject = subject) }
+    }
+
+    fun selectNcertBook(book: NcertBook?) {
+        _uiState.update { it.copy(selectedNcertBook = book, selectedNcertChapter = null) }
+    }
+
+    fun selectNcertChapter(chapter: NcertChapterInfo?) {
+        _uiState.update { it.copy(selectedNcertChapter = chapter) }
+    }
+
+    fun openMatchingSyllabusChapter(matchingChapterId: String) {
+        val chapter = SyllabusRepository.chapters.find { it.id == matchingChapterId }
+        if (chapter != null) {
+            _uiState.update {
+                it.copy(
+                    activeTab = AppTab.SYLLABUS,
+                    selectedChapter = chapter,
+                    selectedGrade = chapter.grade,
+                    selectedSubject = chapter.subject
+                )
+            }
+        }
     }
 
     fun selectMethodDetail(detail: NoteMethodDetail?) {

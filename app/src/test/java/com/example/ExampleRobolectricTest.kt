@@ -121,5 +121,32 @@ class ExampleRobolectricTest {
     assertTrue("Executive crux should summarize partnership concept", crux.executiveCrux.isNotBlank())
     assertTrue("Highlights should exist", crux.keyHighlights.isNotEmpty())
   }
+
+  @Test
+  fun `verify Class 6 7 8 syllabus, videos, and test papers integration`() {
+    // Verify Class 8
+    val class8Chapters = SyllabusRepository.getChaptersByGradeAndSubject(ClassGrade.CLASS_8)
+    assertTrue("Class 8 should have chapters", class8Chapters.isNotEmpty())
+    val class8Videos = com.example.data.VideoSuggestionRepository.getVideosForGrade(ClassGrade.CLASS_8)
+    assertTrue("Class 8 should have videos", class8Videos.isNotEmpty())
+
+    // Verify Class 7
+    val class7Chapters = SyllabusRepository.getChaptersByGradeAndSubject(ClassGrade.CLASS_7)
+    assertTrue("Class 7 should have chapters", class7Chapters.isNotEmpty())
+    val class7Videos = com.example.data.VideoSuggestionRepository.getVideosForGrade(ClassGrade.CLASS_7)
+    assertTrue("Class 7 should have videos", class7Videos.isNotEmpty())
+
+    // Verify Class 6
+    val class6Chapters = SyllabusRepository.getChaptersByGradeAndSubject(ClassGrade.CLASS_6)
+    assertTrue("Class 6 should have chapters", class6Chapters.isNotEmpty())
+    val class6Videos = com.example.data.VideoSuggestionRepository.getVideosForGrade(ClassGrade.CLASS_6)
+    assertTrue("Class 6 should have videos", class6Videos.isNotEmpty())
+
+    // Verify Test papers
+    val papers = TestPaperRepository.testPapers
+    assertTrue("Should have Class 8 test paper", papers.any { it.grade == ClassGrade.CLASS_8 })
+    assertTrue("Should have Class 7 test paper", papers.any { it.grade == ClassGrade.CLASS_7 })
+    assertTrue("Should have Class 6 test paper", papers.any { it.grade == ClassGrade.CLASS_6 })
+  }
 }
 

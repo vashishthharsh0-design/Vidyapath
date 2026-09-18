@@ -15,6 +15,9 @@ enum class ClassGrade(val displayName: String, val code: String) {
     CLASS_12("Class 12 Science (Board)", "12"),
     CLASS_11("Class 11 Science", "11"),
     CLASS_9("Class 9", "9"),
+    CLASS_8("Class 8", "8"),
+    CLASS_7("Class 7", "7"),
+    CLASS_6("Class 6", "6"),
     COMPETITIVE("CUET / CA / JEE / NEET", "Comp")
 }
 
@@ -29,7 +32,10 @@ enum class SubjectType(val displayName: String, val iconName: String, val isComm
     BIOLOGY("Biology", "Eco"),
     HISTORY("History", "MenuBook"),
     POLITY("Polity & Civics", "Gavel"),
-    GEOGRAPHY("Geography", "Public")
+    GEOGRAPHY("Geography", "Public"),
+    ENGLISH("English", "Translate"),
+    HINDI("Hindi", "AutoStories"),
+    SANSKRIT("Sanskrit", "School")
 }
 
 data class NCERTCruxPoint(

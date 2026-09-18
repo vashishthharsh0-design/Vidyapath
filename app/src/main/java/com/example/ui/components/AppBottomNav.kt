@@ -78,7 +78,7 @@ fun AppBottomNav(
             }
         } else {
             // Full Mode: 5 Clean Standard M3 Destinations
-            val isMoreSubTab = selectedTab in listOf(AppTab.VIDEOS, AppTab.NOTE_METHODS, AppTab.EXAM_TRICKS, AppTab.FLASHCARDS)
+            val isMoreSubTab = selectedTab in listOf(AppTab.VIDEOS, AppTab.NOTE_METHODS, AppTab.EXAM_TRICKS, AppTab.FLASHCARDS, AppTab.NCERT)
             
             val primaryTabs = listOf(
                 NavTabItem(AppTab.SYLLABUS, "Crux", Icons.Filled.MenuBook, Icons.Outlined.MenuBook),
@@ -118,8 +118,9 @@ fun AppBottomNav(
                 )
             }
 
-            // 5th Destination: "More Tools" (Videos, Note Methods, Exam Tricks, Flashcards)
+            // 5th Destination: "More Tools" (NCERT, Videos, Note Methods, Exam Tricks, Flashcards)
             val moreLabel = when (selectedTab) {
+                AppTab.NCERT -> "NCERT"
                 AppTab.VIDEOS -> "Videos"
                 AppTab.NOTE_METHODS -> "Methods"
                 AppTab.EXAM_TRICKS -> "Tricks"
@@ -128,6 +129,7 @@ fun AppBottomNav(
             }
 
             val moreIcon = when (selectedTab) {
+                AppTab.NCERT -> Icons.Filled.Folder
                 AppTab.VIDEOS -> Icons.Filled.PlayCircle
                 AppTab.NOTE_METHODS -> Icons.Filled.Lightbulb
                 AppTab.EXAM_TRICKS -> Icons.Filled.Bolt
@@ -136,6 +138,7 @@ fun AppBottomNav(
             }
 
             val moreOutlinedIcon = when (selectedTab) {
+                AppTab.NCERT -> Icons.Outlined.Folder
                 AppTab.VIDEOS -> Icons.Outlined.PlayCircle
                 AppTab.NOTE_METHODS -> Icons.Outlined.Lightbulb
                 AppTab.EXAM_TRICKS -> Icons.Outlined.Bolt
@@ -201,6 +204,22 @@ fun AppBottomNav(
                 )
 
                 Spacer(modifier = Modifier.height(18.dp))
+
+                // NCERT Folder Item
+                ToolOptionRow(
+                    title = "NCERT Folder & Textbooks",
+                    subtitle = "Official rationalised NCERT curriculum (Classes 6–10) with PDF links",
+                    icon = Icons.Default.Folder,
+                    iconTint = TealDark,
+                    isSelected = selectedTab == AppTab.NCERT,
+                    onClick = {
+                        onTabSelected(AppTab.NCERT)
+                        showMoreSheet = false
+                    },
+                    testTag = "more_tool_ncert"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Videos Item
                 ToolOptionRow(

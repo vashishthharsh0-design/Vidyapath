@@ -436,6 +436,241 @@ object TestPaperRepository {
                     )
                 )
             )
+        ),
+
+        // ==========================================
+        // 3. CBSE CLASS 8 SCIENCE & MATHS TEST PAPER
+        // ==========================================
+        TestPaperItem(
+            id = "cbse_8_sci_math_paper_1",
+            title = "CBSE Class 8 Science & Maths Foundation Assessment",
+            subtitle = "NCERT Curriculum Blueprint (Crop Production, Force & Rational Numbers)",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_8,
+            board = BoardType.CBSE,
+            maxMarks = 40,
+            timeAllowedMinutes = 90,
+            generalInstructions = listOf(
+                "The question paper consists of Section A (1-Mark MCQs), Section B (2-Mark Conceptual), and Section C (3-Mark Numerical / Step-Wise).",
+                "Show working formulas clearly for all physics and mathematics questions.",
+                "Draw neat sketches for force vectors or agricultural tools where appropriate."
+            ),
+            sections = listOf(
+                TestSection(
+                    id = "c8_sec_a",
+                    sectionName = "Section A: Multiple Choice Questions (1 Mark Each)",
+                    instructions = "Choose the single correct option for Questions 1 and 2.",
+                    questions = listOf(
+                        TestQuestion(
+                            id = "c8_q1",
+                            questionNumber = 1,
+                            marks = 1,
+                            questionType = QuestionType.MCQ,
+                            questionText = "Which of the following is a Kharif crop sown in rainy season?",
+                            options = listOf(
+                                "Wheat",
+                                "Gram",
+                                "Paddy (Rice)",
+                                "Mustard"
+                            ),
+                            correctOptionIndex = 2,
+                            modelAnswer = "Correct Option: (c) Paddy (Rice).\n\nReason: Paddy requires large amounts of standing water and is grown exclusively during the monsoon / rainy season (June to September) in India. Wheat, gram, and mustard are winter-season (Rabi) crops.",
+                            cbseMarkingScheme = listOf(
+                                MarkingStep("Correct option (c) Paddy", "1 Mark")
+                            ),
+                            topperTip = "Trick to remember: Kharif starts with K -> Rainy season puddles. Rabi = Winter warmth (Wheat, Mustard roti).",
+                            commonPitfall = "Confusing Kharif (monsoon) with Rabi (winter).",
+                            topicTag = "Crop Production & Management"
+                        ),
+                        TestQuestion(
+                            id = "c8_q2",
+                            questionNumber = 2,
+                            marks = 1,
+                            questionType = QuestionType.MCQ,
+                            questionText = "A force of 60 N acts perpendicularly on an area of 3 m². What is the resulting pressure exerted on the surface?",
+                            options = listOf(
+                                "180 Pa",
+                                "20 Pa",
+                                "0.05 Pa",
+                                "15 Pa"
+                            ),
+                            correctOptionIndex = 1,
+                            modelAnswer = "Correct Option: (b) 20 Pa.\n\nCalculation:\nFormula: Pressure (P) = Force (F) / Area (A)\nGiven: F = 60 N, A = 3 m²\nP = 60 / 3 = 20 N/m² = 20 Pascal (Pa).",
+                            cbseMarkingScheme = listOf(
+                                MarkingStep("Formula P = F / Area", "½ Mark"),
+                                MarkingStep("Correct substitution and result 20 Pa", "½ Mark")
+                            ),
+                            topperTip = "Always check that the area is in m² before dividing to obtain SI unit Pascal.",
+                            commonPitfall = "Multiplying Force with Area instead of dividing.",
+                            topicTag = "Force & Pressure"
+                        )
+                    )
+                ),
+                TestSection(
+                    id = "c8_sec_b",
+                    sectionName = "Section B: Conceptual & Numerical Questions (2-3 Marks)",
+                    instructions = "Answer the following question clearly with mathematical steps.",
+                    questions = listOf(
+                        TestQuestion(
+                            id = "c8_q3",
+                            questionNumber = 3,
+                            marks = 3,
+                            questionType = QuestionType.SHORT_ANSWER_3M,
+                            questionText = "Find the multiplicative inverse (reciprocal) of -13/19 and evaluate using distributive property: (-3/4) × (2/3 + -5/6).",
+                            modelAnswer = "1. MULTIPLICATIVE INVERSE:\nThe multiplicative inverse of -13/19 is -19/13, because (-13/19) × (-19/13) = 1.\n\n2. EVALUATION USING DISTRIBUTIVE PROPERTY:\n(-3/4) × [2/3 + (-5/6)]\n= [(-3/4) × (2/3)] + [(-3/4) × (-5/6)]\n= [-2/4] + [15/24]\n= [-1/2] + [5/8]\n= [-4/8] + [5/8]\n= 1/8.\n\nFinal Answer: 1/8.",
+                            cbseMarkingScheme = listOf(
+                                MarkingStep("Multiplicative inverse stated as -19/13", "1 Mark"),
+                                MarkingStep("Application of Distributive Property formula", "1 Mark"),
+                                MarkingStep("Correct simplification to 1/8", "1 Mark")
+                            ),
+                            topperTip = "State the property in brackets `[By Distributive Property a(b+c) = ab + ac]` to secure full step marks.",
+                            commonPitfall = "Omitting the negative sign in multiplicative inverse or failing to find common denominator.",
+                            topicTag = "Rational Numbers"
+                        )
+                    )
+                )
+            )
+        ),
+
+        // ==========================================
+        // 4. CBSE CLASS 7 SCIENCE TEST PAPER
+        // ==========================================
+        TestPaperItem(
+            id = "cbse_7_sci_paper_1",
+            title = "CBSE Class 7 Science Mid-Term Model Paper",
+            subtitle = "Nutrition in Plants & Acids, Bases and Salts",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_7,
+            board = BoardType.CBSE,
+            maxMarks = 30,
+            timeAllowedMinutes = 60,
+            generalInstructions = listOf(
+                "All questions are compulsory.",
+                "Section A carries 1-mark objective questions.",
+                "Section B carries 2-mark and 3-mark analytical questions."
+            ),
+            sections = listOf(
+                TestSection(
+                    id = "c7_sec_a",
+                    sectionName = "Section A: Objective Type",
+                    instructions = "Select the correct option.",
+                    questions = listOf(
+                        TestQuestion(
+                            id = "c7_q1",
+                            questionNumber = 1,
+                            marks = 1,
+                            questionType = QuestionType.MCQ,
+                            questionText = "When blue litmus paper is dipped in lemon juice, what color change is observed?",
+                            options = listOf(
+                                "Turns Yellow",
+                                "Turns Red",
+                                "Turns Green",
+                                "Remains Blue"
+                            ),
+                            correctOptionIndex = 1,
+                            modelAnswer = "Correct Option: (b) Turns Red.\n\nReason: Lemon juice contains citric acid. Acids turn blue litmus paper RED.",
+                            cbseMarkingScheme = listOf(
+                                MarkingStep("Correct option (b) Turns Red", "1 Mark")
+                            ),
+                            topperTip = "Remember mnemonic: Acid turns Blue litmus RED.",
+                            commonPitfall = "Thinking acids turn red litmus blue instead of blue litmus red.",
+                            topicTag = "Acids, Bases & Salts"
+                        )
+                    )
+                ),
+                TestSection(
+                    id = "c7_sec_b",
+                    sectionName = "Section B: Descriptive Short Answers",
+                    instructions = "Answer with chemical equations.",
+                    questions = listOf(
+                        TestQuestion(
+                            id = "c7_q2",
+                            questionNumber = 2,
+                            marks = 3,
+                            questionType = QuestionType.SHORT_ANSWER_3M,
+                            questionText = "What is a neutralization reaction? Explain with a word equation and state why calamine lotion is applied on an ant bite.",
+                            modelAnswer = "1. NEUTRALIZATION REACTION:\nThe reaction between an acid and a base is known as a neutralization reaction. Salt and water are produced in this process with the evolution of heat:\n\nWord Equation:\nAcid + Base → Salt + Water + Heat\nExample:\nHydrochloric acid (HCl) + Sodium hydroxide (NaOH) → Sodium chloride (NaCl) + Water (H2O) + Heat\n\n2. CALAMINE LOTION ON ANT BITE:\nWhen an ant bites, it injects an acidic liquid (formic acid / methanoic acid) into the skin. Calamine lotion contains zinc carbonate, which is a mild base. It neutralizes the effect of the acid, relieving pain and burning sensation.",
+                            cbseMarkingScheme = listOf(
+                                MarkingStep("Definition of Neutralization with word equation", "1½ Marks"),
+                                MarkingStep("Explanation of ant sting acid (formic acid) and calamine base (zinc carbonate)", "1½ Marks")
+                            ),
+                            topperTip = "Always name the exact chemicals: Formic acid in ant sting, Zinc carbonate in calamine lotion.",
+                            commonPitfall = "Writing that neutralization only produces salt, forgetting water and exothermic heat generation.",
+                            topicTag = "Acids, Bases & Salts"
+                        )
+                    )
+                )
+            )
+        ),
+
+        // ==========================================
+        // 5. CBSE CLASS 6 FOUNDATION TEST PAPER
+        // ==========================================
+        TestPaperItem(
+            id = "cbse_6_sci_math_paper_1",
+            title = "CBSE Class 6 Diagnostic Foundation Paper",
+            subtitle = "Components of Food, Plant Parts & Number System",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_6,
+            board = BoardType.CBSE,
+            maxMarks = 25,
+            timeAllowedMinutes = 45,
+            generalInstructions = listOf(
+                "Answer all questions carefully.",
+                "Write in clear handwriting."
+            ),
+            sections = listOf(
+                TestSection(
+                    id = "c6_sec_a",
+                    sectionName = "Section A: Quick MCQs",
+                    instructions = "Choose the correct answer.",
+                    questions = listOf(
+                        TestQuestion(
+                            id = "c6_q1",
+                            questionNumber = 1,
+                            marks = 1,
+                            questionType = QuestionType.MCQ,
+                            questionText = "Which vitamin is easily destroyed by heat during cooking?",
+                            options = listOf(
+                                "Vitamin A",
+                                "Vitamin B1",
+                                "Vitamin C",
+                                "Vitamin D"
+                            ),
+                            correctOptionIndex = 2,
+                            modelAnswer = "Correct Option: (c) Vitamin C.\n\nReason: Vitamin C (Ascorbic acid) is water-soluble and heat-sensitive; it is easily destroyed by high temperature cooking. That is why fresh fruits and raw vegetables are the best sources of Vitamin C.",
+                            cbseMarkingScheme = listOf(
+                                MarkingStep("Correct option (c) Vitamin C", "1 Mark")
+                            ),
+                            topperTip = "Eat fresh citrus fruits (oranges, amla, lemons) raw to get maximum Vitamin C.",
+                            commonPitfall = "Confusing heat-sensitive Vitamin C with fat-soluble vitamins.",
+                            topicTag = "Components of Food"
+                        )
+                    )
+                ),
+                TestSection(
+                    id = "c6_sec_b",
+                    sectionName = "Section B: Short Conceptual Questions",
+                    instructions = "Answer in 2-3 sentences.",
+                    questions = listOf(
+                        TestQuestion(
+                            id = "c6_q2",
+                            questionNumber = 2,
+                            marks = 3,
+                            questionType = QuestionType.SHORT_ANSWER_3M,
+                            questionText = "If a plant has leaves with reticulate venation, what kind of roots will it have? State one example of such a plant.",
+                            modelAnswer = "If a plant has leaves with reticulate venation, it will have a TAPROOT system with smaller lateral roots.\n\nExamples: Gram, Mustard, Pea, or Rose plant.",
+                            cbseMarkingScheme = listOf(
+                                MarkingStep("Identifies Taproot system", "1½ Marks"),
+                                MarkingStep("Provides valid example (e.g. Mustard / Gram)", "1½ Marks")
+                            ),
+                            topperTip = "Remember the golden rule: Reticulate Venation = Taproot; Parallel Venation = Fibrous Root.",
+                            commonPitfall = "Inverting the relationship and writing fibrous roots instead of taproots.",
+                            topicTag = "Getting to Know Plants"
+                        )
+                    )
+                )
+            )
         )
     )
 

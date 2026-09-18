@@ -497,6 +497,126 @@ object VideoSuggestionRepository {
         ),
 
         // ==========================================
+        // CLASS 8 (NCERT FOUNDATION)
+        // ==========================================
+        YouTubeVideoSuggestion(
+            id = "c8_sci_01",
+            title = "Class 8 Science: Force and Pressure Full Chapter One Shot",
+            channelName = "Magnet Brains",
+            verifiedChannel = true,
+            grade = ClassGrade.CLASS_8,
+            subject = SubjectType.SCIENCE_GENERAL,
+            chapterTitle = "Force and Pressure",
+            durationText = "55 min",
+            category = VideoCategory.ONE_SHOT,
+            viewsCount = "2.8M views",
+            description = "Complete breakdown of Contact vs Non-Contact forces, pressure calculation (P = F/A), liquid pressure, and atmospheric pressure demonstrations.",
+            keyTopicsCovered = listOf("Types of Forces", "Formula P=F/A", "Pressure in Fluids", "Atmospheric Pressure"),
+            youtubeVideoUrl = "https://www.youtube.com/results?search_query=Magnet+Brains+Force+and+Pressure+Class+8+One+Shot",
+            searchFallbackQuery = "Magnet Brains Force and Pressure Class 8 One Shot",
+            recommendedFor = "Essential foundation for Class 9 Physics kinematics and Newton's laws",
+            isBoardTopperFavorite = true
+        ),
+        YouTubeVideoSuggestion(
+            id = "c8_math_01",
+            title = "Class 8 Maths: Rational Numbers & Linear Equations Super Concept",
+            channelName = "Dear Sir",
+            verifiedChannel = true,
+            grade = ClassGrade.CLASS_8,
+            subject = SubjectType.MATHEMATICS,
+            chapterTitle = "Rational Numbers",
+            durationText = "1 hr 10 min",
+            category = VideoCategory.ONE_SHOT,
+            viewsCount = "3.5M views",
+            description = "Closure, commutative, associative properties, additive & multiplicative inverses, and solving linear equations with single variable step-by-step.",
+            keyTopicsCovered = listOf("Properties of Rational Numbers", "Additive/Multiplicative Inverse", "Transposition Method", "Word Problems"),
+            youtubeVideoUrl = "https://www.youtube.com/results?search_query=Dear+Sir+Rational+Numbers+Class+8+Maths",
+            searchFallbackQuery = "Dear Sir Rational Numbers Class 8 Maths",
+            recommendedFor = "Fun, conceptual approach with high retention mnemonics",
+            isBoardTopperFavorite = true
+        ),
+
+        // ==========================================
+        // CLASS 7 (NCERT FOUNDATION)
+        // ==========================================
+        YouTubeVideoSuggestion(
+            id = "c7_sci_01",
+            title = "Class 7 Science: Nutrition in Plants & Acids, Bases and Salts One Shot",
+            channelName = "Magnet Brains",
+            verifiedChannel = true,
+            grade = ClassGrade.CLASS_7,
+            subject = SubjectType.SCIENCE_GENERAL,
+            chapterTitle = "Nutrition in Plants",
+            durationText = "50 min",
+            category = VideoCategory.ONE_SHOT,
+            viewsCount = "1.9M views",
+            description = "Autotrophic vs Heterotrophic modes, photosynthesis equation, stomatal guard cells, natural indicators (litmus, turmeric, china rose), and neutralization.",
+            keyTopicsCovered = listOf("Photosynthesis in Plants", "Stomata", "Natural Indicators", "Neutralization Reaction"),
+            youtubeVideoUrl = "https://www.youtube.com/results?search_query=Magnet+Brains+Nutrition+in+Plants+Class+7+One+Shot",
+            searchFallbackQuery = "Magnet Brains Nutrition in Plants Class 7 One Shot",
+            recommendedFor = "Clear diagrams illustrating plant physiology and chemistry reactions",
+            isBoardTopperFavorite = true
+        ),
+        YouTubeVideoSuggestion(
+            id = "c7_math_01",
+            title = "Class 7 Maths: Integers, Fractions & Decimals Complete Revision",
+            channelName = "Dear Sir",
+            verifiedChannel = true,
+            grade = ClassGrade.CLASS_7,
+            subject = SubjectType.MATHEMATICS,
+            chapterTitle = "Integers & Operations",
+            durationText = "1 hr 05 min",
+            category = VideoCategory.ONE_SHOT,
+            viewsCount = "3.2M views",
+            description = "Multiplication and division rules for integers, properties of operations, reciprocal of fractions, and decimal multiplication tricks.",
+            keyTopicsCovered = listOf("Integer Multiplication Rules", "BODMAS", "Fraction Reciprocals", "Decimal Arithmetic"),
+            youtubeVideoUrl = "https://www.youtube.com/results?search_query=Dear+Sir+Integers+Class+7+Maths",
+            searchFallbackQuery = "Dear Sir Integers Class 7 Maths",
+            recommendedFor = "Eliminates sign confusion (+/-) permanently with easy visual rules",
+            isBoardTopperFavorite = true
+        ),
+
+        // ==========================================
+        // CLASS 6 (NCERT FOUNDATION)
+        // ==========================================
+        YouTubeVideoSuggestion(
+            id = "c6_sci_01",
+            title = "Class 6 Science: Components of Food & Getting to Know Plants",
+            channelName = "Magnet Brains",
+            verifiedChannel = true,
+            grade = ClassGrade.CLASS_6,
+            subject = SubjectType.SCIENCE_GENERAL,
+            chapterTitle = "Components of Food",
+            durationText = "48 min",
+            category = VideoCategory.ONE_SHOT,
+            viewsCount = "1.7M views",
+            description = "Major nutrients in food (carbohydrates, fats, proteins, vitamins, minerals, roughage, water), balanced diet, and deficiency disease charts.",
+            keyTopicsCovered = listOf("Nutrients & Tests (Iodine, Biuret)", "Balanced Diet", "Deficiency Diseases", "Plant Parts & Leaves"),
+            youtubeVideoUrl = "https://www.youtube.com/results?search_query=Magnet+Brains+Components+of+Food+Class+6+One+Shot",
+            searchFallbackQuery = "Magnet Brains Components of Food Class 6 One Shot",
+            recommendedFor = "Engaging real-life examples of food tests and plant structures",
+            isBoardTopperFavorite = true
+        ),
+        YouTubeVideoSuggestion(
+            id = "c6_math_01",
+            title = "Class 6 Maths: Knowing Our Numbers & Basic Geometrical Ideas",
+            channelName = "Dear Sir",
+            verifiedChannel = true,
+            grade = ClassGrade.CLASS_6,
+            subject = SubjectType.MATHEMATICS,
+            chapterTitle = "Knowing Our Numbers",
+            durationText = "58 min",
+            category = VideoCategory.ONE_SHOT,
+            viewsCount = "2.9M views",
+            description = "Indian vs International system of numeration, Roman numerals, brackets estimation, points, lines, rays, angles, and polygons made super easy.",
+            keyTopicsCovered = listOf("Indian vs International Numeration", "Roman Numerals", "Estimation & Rounding", "Basic Geometry"),
+            youtubeVideoUrl = "https://www.youtube.com/results?search_query=Dear+Sir+Knowing+Our+Numbers+Class+6+Maths",
+            searchFallbackQuery = "Dear Sir Knowing Our Numbers Class 6 Maths",
+            recommendedFor = "Step-by-step guidance for early middle school mathematics confidence",
+            isBoardTopperFavorite = true
+        ),
+
+        // ==========================================
         // COMPETITIVE (CUET / CA FOUNDATION / JEE / NEET)
         // ==========================================
         YouTubeVideoSuggestion(

@@ -49,13 +49,15 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Handle Android system back button
-    BackHandler(enabled = state.showNoteEditor || state.selectedChapter != null || state.selectedMethodDetail != null || state.selectedTestPaper != null) {
+    BackHandler(enabled = state.showNoteEditor || state.selectedChapter != null || state.selectedMethodDetail != null || state.selectedTestPaper != null || state.selectedNcertBook != null) {
         if (state.showNoteEditor) {
             viewModel.closeNoteEditor()
         } else if (state.selectedTestPaper != null) {
             viewModel.selectTestPaper(null)
         } else if (state.selectedChapter != null) {
             viewModel.selectChapter(null)
+        } else if (state.selectedNcertBook != null) {
+            viewModel.selectNcertBook(null)
         } else if (state.selectedMethodDetail != null) {
             viewModel.selectMethodDetail(null)
         }
@@ -91,12 +93,14 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                     onDismissNetworkNotice = { viewModel.dismissNetworkNotice() },
                     onBackClick = if (state.selectedChapter != null) {
                         { viewModel.selectChapter(null) }
+                    } else if (state.selectedNcertBook != null) {
+                        { viewModel.selectNcertBook(null) }
                     } else null,
                     onAiTutorClick = { viewModel.selectTab(AppTab.AI_TUTOR) }
                 )
             },
             bottomBar = {
-                if (state.selectedChapter == null) {
+                if (state.selectedChapter == null && state.selectedNcertBook == null) {
                     AppBottomNav(
                         selectedTab = state.activeTab,
                         onTabSelected = { viewModel.selectTab(it) },
@@ -159,6 +163,7 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                                     onNavigateToFlashcards = { viewModel.selectTab(AppTab.FLASHCARDS) },
                                     onNavigateToPapers = { viewModel.selectTab(AppTab.TEST_PAPERS) },
                                     onNavigateToTricks = { viewModel.selectTab(AppTab.EXAM_TRICKS) },
+                                    onNavigateToNcert = { viewModel.selectTab(AppTab.NCERT) },
                                     onOpenLiteInfo = { viewModel.openLiteModeInfoDialog() }
                                 )
                             }
@@ -288,6 +293,35 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                                     onDeleteFlashcard = { viewModel.deleteFlashcard(it) },
                                     onCreateFlashcard = { subj, chap, q, a, mnem ->
                                         viewModel.createFlashcardFromNote(subj, chap, q, a, mnem)
+                                    }
+                                )
+                            }
+
+                            AppTab.NCERT -> {
+                                NcertFolderScreen(
+                                    state = state,
+                                    onSelectGrade = { viewModel.setGrade(it) },
+                                    onSelectBook = { viewModel.selectNcertBook(it) },
+                                    onSearchQueryChange = { viewModel.setNcertSearchQuery(it) },
+                                    onFilterSubject = { viewModel.setNcertFilterSubject(it) },
+                                    onCreateNoteFromChapter = { book, chapter ->
+                                        viewModel.openNewNoteEditor(
+                                            initialTitle = "${chapter.title} (Ch ${chapter.chapterNumber})",
+                                            initialSubject = book.subject.displayName,
+                                            initialChapter = "${book.title} - Ch ${chapter.chapterNumber}",
+                                            initialMethod = NoteMethodType.CORNELL,
+                                            initialCue = "Key NCERT Topics:\n" + chapter.keyTopics.joinToString("\n") { "• $it" } + "\n\nCBSE Code: ${book.cbseBookCode}",
+                                            initialMain = "NCERT CHAPTER SYLLABUS & CORE CONCEPTS:\n${chapter.summary}\n\n1. Essential Definitions:\n\n\n2. Key Formulae / Theorems / Chronology:\n\n\n3. High-Frequency Board Questions:\n",
+                                            initialSummary = "Quick Revision / Exam Takeaway:\n${chapter.title} - ${chapter.hindiTitle}",
+                                            initialTags = "#NCERT, #${book.grade.displayName.replace(" ", "")}, #${book.subject.displayName}"
+                                        )
+                                    },
+                                    onAskAiTutor = { book, chapter ->
+                                        viewModel.selectTab(AppTab.AI_TUTOR)
+                                        viewModel.setAiInputText("Please explain NCERT ${book.title} Chapter ${chapter.chapterNumber}: '${chapter.title}' (${chapter.hindiTitle}). What are the key concepts and most frequent CBSE exam questions from this chapter?")
+                                    },
+                                    onOpenMatchingChapter = { matchingChapterId ->
+                                        viewModel.openMatchingSyllabusChapter(matchingChapterId)
                                     }
                                 )
                             }

@@ -573,6 +573,351 @@ object SyllabusRepository {
                 "Draw a flow-arrow chart for Central Bank monetary instruments: '↑ Repo Rate -> ↑ Lending Rate -> ↓ Borrowings -> ↓ Money Supply'."
             ),
             suggestedMethod = NoteMethodType.FLOW_CHART
+        ),
+
+        // ==========================================
+        // CLASS 8 NCERT FOUNDATION CHAPTERS
+        // ==========================================
+        ChapterItem(
+            id = "c8_sci_ch1",
+            chapterNumber = 1,
+            title = "Crop Production & Management",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_8,
+            board = BoardType.CBSE,
+            marksWeightage = "5-6 Marks",
+            summary = "Fundamental concepts of agricultural practices: soil preparation, sowing with seed drills, manure vs fertilizer differences, modern irrigation (drip & sprinkler systems), harvesting, and storage.",
+            keyTopics = listOf(
+                "Kharif crops (Paddy, Maize) vs Rabi crops (Wheat, Gram, Mustard)",
+                "Agricultural implements: Plough, Hoe, Cultivator",
+                "Manures vs Chemical Fertilizers: Soil humus, water retention, environmental impact",
+                "Irrigation methods: Traditional vs Modern (Drip system saves water in arid zones, Sprinkler on uneven land)",
+                "Weeding and Weedicides (2,4-D), Harvesting & Granary/Silos storage"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Kharif vs Rabi Seasons", "Kharif crops are sown in rainy season (June to September). Rabi crops are grown in winter season (October to March).", isHighYield = true),
+                NCERTCruxPoint(2, "Manure vs Fertilizer Distinction", "Manures are natural organic substances obtained from decomposition of plant/animal waste, adding rich humus. Fertilizers are inorganic factory-made salts rich in NPK but add no humus.", isHighYield = true),
+                NCERTCruxPoint(3, "Water Conservation in Irrigation", "Drip irrigation provides water drop-by-drop directly near plant roots, preventing any evaporation loss—ideal for water-scarce regions.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("NPK Fertilizers", "Nitrogen (N) + Phosphorus (P) + Potassium (K)", "Crucial macronutrients supplied chemically", "Chemical fertilizer salts"),
+                FormulaItem("Crop Rotation", "Legumes (Rhizobium in root nodules) -> Fix Atmospheric Nitrogen", "Restores soil nitrogen naturally", "Biological nitrogen fixation")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Differences between Manure and Fertilizer", "3-Mark Short Answer", "Frequent", "Students write generic points instead of the 4 standard NCERT tabular contrasts."),
+                PYQTrend("Advantages of Drip Irrigation", "2-Mark Question", "Frequent", "Highlight water efficiency, zero run-off, and weed suppression.")
+            ),
+            topperTips = listOf(
+                "Present Kharif vs Rabi in a 3-column table: Season, Sowing Months, and 3 specific NCERT examples.",
+                "Mention Rhizobium bacteria and biological nitrogen fixation when explaining soil fertility restoration."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+        ChapterItem(
+            id = "c8_sci_ch8",
+            chapterNumber = 8,
+            title = "Force & Pressure",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_8,
+            board = BoardType.CBSE,
+            marksWeightage = "6-8 Marks",
+            summary = "Core physical mechanics of force: push or pull, interactions, magnitude and direction, contact vs non-contact forces, pressure formula P = F/A, fluid pressure, and atmospheric pressure.",
+            keyTopics = listOf(
+                "Definition of Force (Push or Pull), SI Unit (Newton, N)",
+                "Effects of Force: Change in state of motion, speed, direction, and shape of objects",
+                "Contact Forces: Muscular force, Friction",
+                "Non-Contact Forces: Magnetic force, Electrostatic force, Gravitational force",
+                "Pressure: Definition, formula P = F / A, SI unit Pascal (N/m²)",
+                "Liquid pressure increasing with depth and equal in all directions at same depth",
+                "Atmospheric pressure and rubber sucker demonstration"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Pressure-Area Inverse Relationship", "Pressure is inversely proportional to contact area for a constant force (P = F / A). A sharp knife or pointed nail penetrates easily because smaller area yields huge pressure.", isHighYield = true),
+                NCERTCruxPoint(2, "Non-Contact Forces", "Gravitational, electrostatic, and magnetic forces act through a distance without physical surface contact.", isHighYield = true),
+                NCERTCruxPoint(3, "Atmospheric Pressure Magnitude", "The weight of atmospheric air column on our head is enormous (~100 kPa), but balanced by our internal blood pressure.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("Pressure Formula", "P = Force / Area (F / A)", "SI Unit: Pascal (Pa) or N/m²", "1 Pa = 1 N/m²"),
+                FormulaItem("Liquid Pressure", "P_liquid = h · ρ · g", "Increases linearly with liquid column depth h", "Pascal")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Why school bags have broad straps", "2-Mark Reasoning", "Frequent", "State that broader straps increase surface area (A), reducing pressure (P = F/A) on the shoulders."),
+                PYQTrend("Classify forces into Contact and Non-Contact", "2-Mark Short", "Frequent", "Ensure electrostatic and gravitational are strictly categorized as non-contact.")
+            ),
+            topperTips = listOf(
+                "Always write the standard formula P = F / A before attempting numericals or reasoning questions.",
+                "Draw the rubber sucker diagram when explaining atmospheric pressure."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+        ChapterItem(
+            id = "c8_math_ch1",
+            chapterNumber = 1,
+            title = "Rational Numbers",
+            subject = SubjectType.MATHEMATICS,
+            grade = ClassGrade.CLASS_8,
+            board = BoardType.CBSE,
+            marksWeightage = "5-6 Marks",
+            summary = "Properties of rational numbers (p/q, q ≠ 0): closure, commutativity, associativity, role of 0 and 1, additive inverse, multiplicative inverse (reciprocal), and finding rational numbers between two rational numbers.",
+            keyTopics = listOf(
+                "Definition of Rational Numbers: p/q where p, q are integers and q ≠ 0",
+                "Closure property under Addition, Subtraction, Multiplication (not Division by 0)",
+                "Commutative and Associative properties for addition and multiplication",
+                "Distributive property: a × (b + c) = (a × b) + (a × c)",
+                "Additive identity (0) and Additive inverse (-a/b)",
+                "Multiplicative identity (1) and Multiplicative inverse / reciprocal (b/a)",
+                "Finding 'n' rational numbers between two numbers using common denominator or mean method"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Zero Has No Reciprocal", "0 has no multiplicative inverse (reciprocal) because division by zero is undefined in mathematics.", isHighYield = true),
+                NCERTCruxPoint(2, "Distributivity of Multiplication", "Using a(b + c) simplifies complex fractional sums drastically. Look for common rational factors.", isHighYield = true),
+                NCERTCruxPoint(3, "Infinite Numbers Between Any Two", "Between any two distinct rational numbers, there exist infinitely many rational numbers.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("Additive Inverse", "a/b + (-a/b) = 0", "Sign changes, magnitude remains identical", "Additive Identity is 0"),
+                FormulaItem("Multiplicative Inverse (Reciprocal)", "a/b × (b/a) = 1", "Numerator and denominator swapped", "Multiplicative Identity is 1"),
+                FormulaItem("Distributive Property", "a/b × (c/d + e/f) = (a/b × c/d) + (a/b × e/f)", "Enables factoring common terms", "Simplification tool")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Evaluate using appropriate properties", "3-Mark Question", "Frequent", "Must explicitly mention property name in brackets like [By Distributive Property] for step marks."),
+                PYQTrend("Find 5 rational numbers between 2/3 and 4/5", "2-3 Mark Question", "Frequent", "Convert to like denominators with a sufficiently large common multiple.")
+            ),
+            topperTips = listOf(
+                "Always name the property applied in the right-hand margin for step-marking credit.",
+                "Remember that rational numbers are NOT closed under division because division by zero is undefined."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+
+        // ==========================================
+        // CLASS 7 NCERT FOUNDATION CHAPTERS
+        // ==========================================
+        ChapterItem(
+            id = "c7_sci_ch1",
+            chapterNumber = 1,
+            title = "Nutrition in Plants",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_7,
+            board = BoardType.CBSE,
+            marksWeightage = "5-7 Marks",
+            summary = "Modes of nutrition in plants: autotrophic nutrition via photosynthesis, chlorophyll and sunlight requirements, stomata and guard cells, heterotrophic plants (Parasites like Cuscuta, Insectivorous Pitcher plant, Saprotrophs like Fungi), and Lichens symbiosis.",
+            keyTopics = listOf(
+                "Autotrophic vs Heterotrophic nutrition",
+                "Photosynthesis chemical equation, raw materials (CO2, H2O, sunlight, chlorophyll)",
+                "Structure and function of Stomata and Guard cells",
+                "Parasitic plant: Amarbel (Cuscuta) with haustoria",
+                "Insectivorous plants: Pitcher plant (Nepenthes) traps insects for nitrogen",
+                "Saprotrophs: Fungi secretion of digestive juices on dead organic matter",
+                "Symbiotic relationship: Lichens (Alga provides food, Fungus provides shelter, water, minerals)"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Photosynthesis Chemical Equation", "6CO2 + 6H2O --(Sunlight / Chlorophyll)--> C6H12O6 (Glucose/Starch) + 6O2. Oxygen is released as a vital byproduct.", isHighYield = true),
+                NCERTCruxPoint(2, "Why Pitcher Plant Eats Insects", "Grows in nitrogen-deficient soil; synthesizes carbohydrates via green leaves but digests insects to fulfill vital nitrogen needs.", isHighYield = true),
+                NCERTCruxPoint(3, "Lichens Mutual Symbiosis", "Alga (autotroph) and fungus (saprotroph) live together in mutually beneficial association.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("Photosynthesis Equation", "6CO2 + 6H2O --(Sunlight / Chlorophyll)--> C6H12O6 + 6O2", "Synthesis of carbohydrates by green plants", "Glucose & Oxygen gas"),
+                FormulaItem("Iodine Test for Starch", "Leaf + Iodine solution -> Blue-Black color", "Confirms occurrence of photosynthesis", "Qualitative color indicator")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Explain how insectivorous plants obtain nutrition", "2-Mark Question", "Frequent", "Students forget to mention that they still carry out photosynthesis and trap insects specifically for nitrogen."),
+                PYQTrend("Distinguish between Parasite and Saprotroph", "3-Mark Short", "Frequent", "State host relationship: parasite lives on living host; saprotroph feeds on dead matter.")
+            ),
+            topperTips = listOf(
+                "Write the chemical word equation clearly and mention the Iodine blue-black test for starch confirmation.",
+                "Draw a neat leaf cross-section showing stomatal pore, guard cells, and chloroplasts."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+        ChapterItem(
+            id = "c7_sci_ch4",
+            chapterNumber = 4,
+            title = "Acids, Bases & Salts",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_7,
+            board = BoardType.CBSE,
+            marksWeightage = "5-6 Marks",
+            summary = "Chemical nature of substances: acidic (sour taste) vs basic (bitter, soapy touch), natural indicators (Litmus from lichens, Turmeric, China rose petals), neutralization reaction (Acid + Base -> Salt + Water + Heat), and daily life neutralization applications.",
+            keyTopics = listOf(
+                "Acids: Sour taste, turn blue litmus red (Hydrochloric, Acetic, Citric, Tartaric, Lactic)",
+                "Bases: Bitter taste, soapy feel, turn red litmus blue (Sodium hydroxide, Calcium hydroxide)",
+                "Natural indicators: Litmus extract (Lichens), Turmeric (turns red in base), China rose indicator",
+                "Neutralization reaction: Acid + Base -> Salt + Water + Heat",
+                "Daily life applications: Indigestion (Antacid Milk of Magnesia), Ant sting (Calamine/Baking soda zinc carbonate), Factory waste treatment"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Litmus Color Memory Rule", "Acids turn Blue litmus RED. Bases turn Red litmus BLUE ('B for Base, B for Blue').", isHighYield = true),
+                NCERTCruxPoint(2, "Ant Sting Chemistry", "Ant injects Formic acid (Methanoic acid); neutralized by rubbing moist baking soda (Sodium hydrogen carbonate) or calamine lotion (Zinc carbonate).", isHighYield = true),
+                NCERTCruxPoint(3, "Neutralization is Exothermic", "Neutralization always evolves heat, increasing the reaction vessel temperature.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("Neutralization Word Equation", "Acid + Base -> Salt + Water + Heat", "Fundamental acid-base reaction", "Exothermic"),
+                FormulaItem("Hydrochloric Neutralization", "HCl + NaOH -> NaCl + H2O + Heat", "Forms common salt and water", "Complete neutralization")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Remedy for Ant Bite / Indigestion", "2-Mark Application", "Frequent", "Specify the exact chemical name: Milk of Magnesia contains Magnesium Hydroxide; Calamine contains Zinc Carbonate."),
+                PYQTrend("Turmeric stain turning red with soap", "2-Mark Question", "Frequent", "Explain that soap is basic in nature, causing yellow turmeric indicator to turn reddish-brown.")
+            ),
+            topperTips = listOf(
+                "Create a two-column mnemonic table: Acid (Sour, Blue->Red) vs Base (Bitter, Red->Blue).",
+                "Always mention that neutralization reactions produce heat and form water alongside the salt."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+        ChapterItem(
+            id = "c7_math_ch1",
+            chapterNumber = 1,
+            title = "Integers & Operations",
+            subject = SubjectType.MATHEMATICS,
+            grade = ClassGrade.CLASS_7,
+            board = BoardType.CBSE,
+            marksWeightage = "5-6 Marks",
+            summary = "Properties of addition, subtraction, multiplication, and division of integers. Rules of signs: positive × negative = negative, negative × negative = positive. Multiplicative properties and word problems involving temperature and elevation.",
+            keyTopics = listOf(
+                "Review of Integers on number line",
+                "Properties of Addition and Subtraction: Closure, Commutative (a + b = b + a), Associative",
+                "Multiplication of Integers: Sign conventions (+ × - = -, - × - = +)",
+                "Multiplication properties: Distributive property a × (b + c) = (a × b) + (a × c)",
+                "Division of Integers: Sign rules and non-commutativity",
+                "Real life problems: Elevation above sea level (+), depth below sea level (-), profit vs loss"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Product of Even vs Odd Negatives", "Even number of negative integers multiplied gives POSITIVE. Odd number of negative integers multiplied gives NEGATIVE.", isHighYield = true),
+                NCERTCruxPoint(2, "Division by Zero is Undefined", "a ÷ 0 is not defined, whereas 0 ÷ a = 0 (for a ≠ 0).", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("Sign Rules for Multiplication", "(+a) × (-b) = -(ab) and (-a) × (-b) = +(ab)", "Crucial sign calculation rule", "Integer arithmetic"),
+                FormulaItem("Distributive Property", "a × (b + c) = a × b + a × c", "Splitting terms for mental math", "Formula identity")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Calculate using distributive property: (-25) × 102", "2-Mark Question", "Frequent", "Split 102 into (100 + 2): (-25) × 100 + (-25) × 2 = -2500 - 50 = -2550."),
+                PYQTrend("Submarine depth elevation word problem", "3-Mark Question", "Frequent", "Check consistent signs (+ for climb, - for dive).")
+            ),
+            topperTips = listOf(
+                "Count the number of negative signs first: even number of '-' yields positive, odd yields negative.",
+                "Always state which property is used when simplifying calculation expressions."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+
+        // ==========================================
+        // CLASS 6 NCERT FOUNDATION CHAPTERS
+        // ==========================================
+        ChapterItem(
+            id = "c6_sci_ch1",
+            chapterNumber = 1,
+            title = "Components of Food",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_6,
+            board = BoardType.CBSE,
+            marksWeightage = "5-6 Marks",
+            summary = "Major food nutrients: Carbohydrates, Fats, Proteins, Vitamins, Minerals, Dietary fibres (Roughage), and Water. Chemical tests for starch, protein, and fats. Balanced diet and deficiency diseases.",
+            keyTopics = listOf(
+                "What our food contains: Nutrients (Carbs, Fats, Proteins, Vitamins, Minerals)",
+                "Energy-giving foods: Carbohydrates (Sugar, Starch) and Fats (Fats provide more energy per gram)",
+                "Body-building foods: Proteins (Milk, Eggs, Pulses, Fish)",
+                "Protective foods: Vitamins (A, B-complex, C, D) and Minerals (Iron, Calcium, Iodine)",
+                "Chemical test for Starch (Dilute Iodine solution -> Blue-Black color)",
+                "Chemical test for Protein (Copper sulphate + Caustic soda -> Violet color)",
+                "Chemical test for Fat (Oily patch on translucent paper)",
+                "Balanced Diet definition and Dietary fiber/water importance",
+                "Deficiency Diseases: Night blindness (Vit A), Beriberi (Vit B1), Scurvy (Vit C), Rickets (Vit D), Goitre (Iodine), Anaemia (Iron)"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Nutrient Identification Tests", "Starch + Iodine -> Blue-Black. Protein + CuSO4 + NaOH -> Violet color. Fat -> Translucent grease patch on paper.", isHighYield = true),
+                NCERTCruxPoint(2, "Deficiency Disease Mapping", "Vitamin C heat sensitivity: destroyed easily by cooking. Deficiency leads to bleeding gums (Scurvy). Iodine deficiency leads to swollen neck thyroid gland (Goitre).", isHighYield = true),
+                NCERTCruxPoint(3, "Roughage (Dietary Fibre)", "Does not provide any nutrient, but adds bulk to undigested food and helps the body get rid of waste smoothly.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("Starch Test", "Food sample + Dilute Iodine Solution -> Blue-Black color", "Confirms presence of starch", "Colorimetric indicator"),
+                FormulaItem("Protein Test", "Food paste + 2 drops CuSO4 + 10 drops NaOH -> Violet color", "Biuret test for proteins", "Colorimetric indicator"),
+                FormulaItem("Deficiency Table", "Vit A -> Night Blindness | Vit B1 -> Beriberi | Vit C -> Scurvy | Vit D -> Rickets", "Core NCERT deficiency pairings", "Board memory chart")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("State symptoms and causes of Scurvy and Rickets", "3-Mark Question", "Frequent", "Mention specific vitamin deficiency (Vit C for Scurvy, Vit D for Rickets) and symptoms."),
+                PYQTrend("Describe test for presence of protein in given foodstuff", "3-Mark Question", "Frequent", "Must name both chemicals: Copper sulphate solution (CuSO4) and Caustic soda (NaOH).")
+            ),
+            topperTips = listOf(
+                "Memorize the NCERT Deficiency Disease table thoroughly—it appears in nearly every exam paper.",
+                "Explain that while fats give more energy than carbohydrates, both are classified as energy-giving foods."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+        ChapterItem(
+            id = "c6_sci_ch7",
+            chapterNumber = 7,
+            title = "Getting to Know Plants",
+            subject = SubjectType.SCIENCE_GENERAL,
+            grade = ClassGrade.CLASS_6,
+            board = BoardType.CBSE,
+            marksWeightage = "5-6 Marks",
+            summary = "Classification of plants into Herbs, Shrubs, and Trees. Parts of a plant: Root (Taproot vs Fibrous root), Stem (Water conduction), Leaf (Venation: Reticulate vs Parallel, Transpiration, Photosynthesis), and Parts of Flower (Sepals, Petals, Stamens, Pistil).",
+            keyTopics = listOf(
+                "Classification of plants: Herbs (tender green stems, small), Shrubs (hard woody stem branching near base), Trees (tall with thick trunk)",
+                "Creepers (weak stem spreading on ground) vs Climbers (take support with tendrils)",
+                "Stem functions: Conducts water and dissolved minerals to leaves like a two-way street",
+                "Leaf anatomy: Petiole, Lamina, Veins, Midrib",
+                "Venation types: Reticulate venation (net-like) vs Parallel venation (veins run parallel)",
+                "Transpiration: Evaporation of water vapor through leaves",
+                "Roots: Taproot with lateral roots vs Fibrous roots",
+                "Correlation: Reticulate venation plants have Taproots; Parallel venation plants have Fibrous roots",
+                "Parts of a flower: Sepals, Petals, Stamens (Anther + Filament), Pistil (Stigma + Style + Ovary containing ovules)"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Venation to Root Type Correlation", "Plants with reticulate venation have TAPROOTS (e.g. Gram, Mustard). Plants with parallel venation have FIBROUS ROOTS (e.g. Wheat, Grass). No need to uproot the plant!", isHighYield = true),
+                NCERTCruxPoint(2, "Stamen vs Pistil Anatomy", "Stamen is the male reproductive part (Filament + Anther with pollen). Pistil is the female part (Stigma + Style + Ovary with ovules).", isHighYield = true),
+                NCERTCruxPoint(3, "Transpiration Cooling & Water Pull", "Leaves release water vapor through stomata, creating suction pull that draws water from roots to the tallest trees.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("Root-Venation Rule", "Reticulate Venation <==> Taproot | Parallel Venation <==> Fibrous Root", "Observation shortcut without pulling root", "NCERT Golden Rule"),
+                FormulaItem("Flower Structure", "Pistil = Stigma + Style + Ovary | Stamen = Anther + Filament", "Four concentric whorls of flower", "Morphological parts")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Draw and label parts of a flower", "3-5 Mark Diagram", "Frequent", "Neat pencil diagram with all 4 parts: Sepal, Petal, Stamen, Pistil."),
+                PYQTrend("How can you know root type by leaf observation without uprooting?", "2-Mark Question", "Frequent", "State the venation rule: Parallel venation = Fibrous root; Reticulate venation = Taproot.")
+            ),
+            topperTips = listOf(
+                "Always draw directional arrows on diagrams and label in clean block letters.",
+                "Remember: Anther produces pollen grains; Ovary contains ovules which develop into seeds."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
+        ),
+        ChapterItem(
+            id = "c6_math_ch1",
+            chapterNumber = 1,
+            title = "Knowing Our Numbers",
+            subject = SubjectType.MATHEMATICS,
+            grade = ClassGrade.CLASS_6,
+            board = BoardType.CBSE,
+            marksWeightage = "5-6 Marks",
+            summary = "Comparing numbers, making greatest and smallest numbers, place value, Indian vs International System of Numeration, estimation by rounding off to nearest tens/hundreds/thousands, and Roman numerals.",
+            keyTopics = listOf(
+                "Comparing large numbers and place value identification",
+                "Indian Numeration System: Ones, Tens, Hundreds, Thousands, Ten Thousands, Lakhs, Ten Lakhs, Crores (Commas: 3, 2, 2)",
+                "International Numeration System: Ones, Tens, Hundreds, Thousands, Ten Thousands, Hundred Thousands, Millions, Ten Millions (Commas: 3, 3, 3)",
+                "Conversion between systems: 1 Million = 10 Lakhs, 1 Crore = 10 Millions",
+                "Estimation and Rounding off rules (rounding to nearest 10, 100, 1000)",
+                "Using brackets for clear expression evaluation (BODMAS)",
+                "Roman Numerals: I, V, X, L, C, D, M and rules of combination"
+            ),
+            cruxPoints = listOf(
+                NCERTCruxPoint(1, "Comma Placement Rule", "Indian system puts first comma after 3 digits from right, then after every 2 digits. International system places commas after every 3 digits from right.", isHighYield = true),
+                NCERTCruxPoint(2, "Roman Numerals Constraints", "Symbols V, L, D are NEVER repeated or subtracted. Symbol I can be subtracted only from V and X. X can be subtracted only from L and C.", isHighYield = true),
+                NCERTCruxPoint(3, "Key Metric Conversions", "1 km = 1,000 m = 1,00,000 cm = 10,00,000 mm. 1 kg = 1,000 g = 10,00,000 mg.", isHighYield = true)
+            ),
+            formulas = listOf(
+                FormulaItem("System Comparison", "1 Million = 10 Lakhs | 1 Crore = 10 Millions = 100 Lakhs", "Equivalence between Indian and International systems", "Conversion identity"),
+                FormulaItem("Roman Numerals Key", "I=1, V=5, X=10, L=50, C=100, D=500, M=1000", "Standard seven basic symbols", "Roman notation")
+            ),
+            pyqTrends = listOf(
+                PYQTrend("Insert commas and write in International System", "2-Mark Question", "Frequent", "Group digits in clusters of 3 from right: e.g. 78,921,092 = Seventy-eight million nine hundred twenty-one thousand ninety-two."),
+                PYQTrend("Write given number in Roman numerals: 73, 98", "2-Mark Question", "Frequent", "Break into place values: 73 = 70 + 3 = LXX + III = LXXIII; 98 = 90 + 8 = XC + VIII = XCVIII.")
+            ),
+            topperTips = listOf(
+                "Never write 98 as 'IIC' or 95 as 'VC'! Roman subtraction is only allowed for the immediate preceding base.",
+                "Count digits carefully before placing commas according to the requested system."
+            ),
+            suggestedMethod = NoteMethodType.CORNELL
         )
     )
 

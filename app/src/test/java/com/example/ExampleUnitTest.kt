@@ -1,6 +1,8 @@
 package com.example
 
 import com.example.data.GeminiChatRepository
+import com.example.data.SyllabusRepository
+import com.example.data.TestPaperRepository
 import com.example.data.VideoSuggestionRepository
 import com.example.model.*
 import kotlinx.coroutines.runBlocking
@@ -100,6 +102,22 @@ class ExampleUnitTest {
         assertTrue("Class 12 Science should have Physics", science12Videos.any { it.subject == SubjectType.PHYSICS })
         assertTrue("Class 12 Science should have Chemistry", science12Videos.any { it.subject == SubjectType.CHEMISTRY })
 
+        // Test Class 8, 7, 6 video suggestions
+        val class8Videos = VideoSuggestionRepository.getVideosForGrade(ClassGrade.CLASS_8)
+        assertTrue("Class 8 should have video suggestions", class8Videos.isNotEmpty())
+        assertTrue("Class 8 should have Science videos", class8Videos.any { it.subject == SubjectType.SCIENCE_GENERAL })
+        assertTrue("Class 8 should have Mathematics videos", class8Videos.any { it.subject == SubjectType.MATHEMATICS })
+
+        val class7Videos = VideoSuggestionRepository.getVideosForGrade(ClassGrade.CLASS_7)
+        assertTrue("Class 7 should have video suggestions", class7Videos.isNotEmpty())
+        assertTrue("Class 7 should have Science videos", class7Videos.any { it.subject == SubjectType.SCIENCE_GENERAL })
+        assertTrue("Class 7 should have Mathematics videos", class7Videos.any { it.subject == SubjectType.MATHEMATICS })
+
+        val class6Videos = VideoSuggestionRepository.getVideosForGrade(ClassGrade.CLASS_6)
+        assertTrue("Class 6 should have video suggestions", class6Videos.isNotEmpty())
+        assertTrue("Class 6 should have Science videos", class6Videos.any { it.subject == SubjectType.SCIENCE_GENERAL })
+        assertTrue("Class 6 should have Mathematics videos", class6Videos.any { it.subject == SubjectType.MATHEMATICS })
+
         // Test Chapter-specific video suggestions
         val lightVideos = VideoSuggestionRepository.getVideosForChapter("Light - Reflection and Refraction", ClassGrade.CLASS_10)
         assertTrue("Should find videos for Light chapter", lightVideos.isNotEmpty())
@@ -193,5 +211,38 @@ class ExampleUnitTest {
         assertFalse("Lite mode should default to false when online", state.isLiteMode)
         assertFalse("Lite info dialog should initially be dismissed", state.showLiteModeInfoDialog)
         assertTrue("Data saved estimate should be positive", state.dataSavedMegabytes > 0)
+    }
+
+    @Test
+    fun testClass678Support() {
+        // Verify Enum properties
+        assertEquals("Class 8", ClassGrade.CLASS_8.displayName)
+        assertEquals("8", ClassGrade.CLASS_8.code)
+        assertEquals("Class 7", ClassGrade.CLASS_7.displayName)
+        assertEquals("7", ClassGrade.CLASS_7.code)
+        assertEquals("Class 6", ClassGrade.CLASS_6.displayName)
+        assertEquals("6", ClassGrade.CLASS_6.code)
+
+        // Verify Syllabus Repository contains chapters for Classes 6, 7, 8
+        val ch8 = SyllabusRepository.getChaptersByGradeAndSubject(ClassGrade.CLASS_8)
+        assertTrue("Class 8 should have chapters", ch8.isNotEmpty())
+        assertTrue("Class 8 should have Science chapters", ch8.any { it.subject == SubjectType.SCIENCE_GENERAL })
+        assertTrue("Class 8 should have Math chapters", ch8.any { it.subject == SubjectType.MATHEMATICS })
+
+        val ch7 = SyllabusRepository.getChaptersByGradeAndSubject(ClassGrade.CLASS_7)
+        assertTrue("Class 7 should have chapters", ch7.isNotEmpty())
+        assertTrue("Class 7 should have Science chapters", ch7.any { it.subject == SubjectType.SCIENCE_GENERAL })
+        assertTrue("Class 7 should have Math chapters", ch7.any { it.subject == SubjectType.MATHEMATICS })
+
+        val ch6 = SyllabusRepository.getChaptersByGradeAndSubject(ClassGrade.CLASS_6)
+        assertTrue("Class 6 should have chapters", ch6.isNotEmpty())
+        assertTrue("Class 6 should have Science chapters", ch6.any { it.subject == SubjectType.SCIENCE_GENERAL })
+        assertTrue("Class 6 should have Math chapters", ch6.any { it.subject == SubjectType.MATHEMATICS })
+
+        // Verify TestPaperRepository has papers for Classes 6, 7, 8
+        val papers = TestPaperRepository.testPapers
+        assertTrue("Should have Class 8 paper", papers.any { it.grade == ClassGrade.CLASS_8 })
+        assertTrue("Should have Class 7 paper", papers.any { it.grade == ClassGrade.CLASS_7 })
+        assertTrue("Should have Class 6 paper", papers.any { it.grade == ClassGrade.CLASS_6 })
     }
 }

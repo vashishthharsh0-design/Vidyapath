@@ -42,6 +42,7 @@ fun SyllabusScreen(
     onNavigateToFlashcards: () -> Unit = {},
     onNavigateToPapers: () -> Unit = {},
     onNavigateToTricks: () -> Unit = {},
+    onNavigateToNcert: () -> Unit = {},
     onOpenLiteInfo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -324,6 +325,74 @@ fun SyllabusScreen(
             }
         }
 
+        // NCERT Folder & Textbooks Quick Access Banner
+        item {
+            Card(
+                onClick = onNavigateToNcert,
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("syllabus_ncert_folder_banner")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(14.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(TealDark)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "NCERT Folder & Textbooks",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = EmeraldGreenLight
+                            ) {
+                                Text(
+                                    text = "Classes 6–10",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = EmeraldGreen,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Browse official NCERT textbooks, chapter breakdowns & PDF portals",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = "Open NCERT Folder",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
         // Subject Filter Chips
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -364,7 +433,7 @@ fun SyllabusScreen(
                             SubjectType.BIOLOGY,
                             SubjectType.MATHEMATICS
                         )
-                        ClassGrade.CLASS_10, ClassGrade.CLASS_9 -> listOf(
+                        ClassGrade.CLASS_10, ClassGrade.CLASS_9, ClassGrade.CLASS_8, ClassGrade.CLASS_7, ClassGrade.CLASS_6 -> listOf(
                             SubjectType.SCIENCE_GENERAL,
                             SubjectType.MATHEMATICS,
                             SubjectType.HISTORY,

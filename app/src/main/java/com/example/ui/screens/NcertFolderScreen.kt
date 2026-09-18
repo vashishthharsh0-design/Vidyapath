@@ -1,5 +1,8 @@
 package com.example.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -26,10 +29,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.NcertBookRepository
+import com.example.data.NcertNotesProvider
 import com.example.model.*
 import com.example.ui.theme.*
 import com.example.viewmodel.MainUiState
@@ -44,7 +51,6 @@ fun NcertFolderScreen(
     onFilterSubject: (SubjectType?) -> Unit,
     onCreateNoteFromChapter: (NcertBook, NcertChapterInfo) -> Unit,
     onAskAiTutor: (NcertBook, NcertChapterInfo) -> Unit,
-    onOpenMatchingChapter: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -65,13 +71,12 @@ fun NcertFolderScreen(
     }
 
     if (state.selectedNcertBook != null) {
-        // Book Chapter Explorer Detail View
+        // Book Chapter Explorer Detail View with Detailed Notes
         NcertBookDetailView(
             book = state.selectedNcertBook,
             onBack = { onSelectBook(null) },
             onCreateNote = { ch -> onCreateNoteFromChapter(state.selectedNcertBook, ch) },
             onAskAi = { ch -> onAskAiTutor(state.selectedNcertBook, ch) },
-            onOpenMatching = onOpenMatchingChapter,
             modifier = modifier
         )
     } else {
@@ -111,13 +116,13 @@ fun NcertFolderScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(
-                                        text = "NCERT Folder & Library",
+                                        text = "NCERT Folder & Notes",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "Official Rationalised 2024–25 Curriculum",
+                                        text = "Official Textbooks & In-Depth Notes (Classes 6–10)",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = EmeraldGreen
                                     )
@@ -302,7 +307,7 @@ fun NcertFolderScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "All books follow NCERT rationalised edition. Tap any textbook to browse chapters, key concepts, or read official PDFs.",
+                                    text = "Rationalised 2024–25 editions. Tap any textbook to access chapters, comprehensive detailed notes, formulas, and NCERT solutions.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -491,12 +496,12 @@ private fun NcertBookCard(
                         modifier = Modifier.height(34.dp)
                     ) {
                         Icon(
-                            Icons.Default.FolderOpen,
+                            Icons.Default.MenuBook,
                             contentDescription = null,
                             modifier = Modifier.size(15.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Browse Chapters", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text("Detailed Notes", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                     }
 
                     OutlinedButton(
@@ -526,11 +531,11 @@ private fun NcertBookDetailView(
     onBack: () -> Unit,
     onCreateNote: (NcertChapterInfo) -> Unit,
     onAskAi: (NcertChapterInfo) -> Unit,
-    onOpenMatching: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val bookColor = Color(book.coverColorHex)
+    var selectedChapterForDetailedNotes by remember { mutableStateOf<NcertChapterInfo?>(null) }
 
     Scaffold(
         topBar = {
@@ -545,7 +550,7 @@ private fun NcertBookDetailView(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "${book.grade.displayName} • ${book.cbseBookCode}",
+                            text = "${book.grade.displayName} • ${book.cbseBookCode} • Chapter Notes in Detail",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -580,7 +585,7 @@ private fun NcertBookDetailView(
     ) { paddingValues ->
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -609,7 +614,7 @@ private fun NcertBookDetailView(
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Rationalised Syllabus • ${book.chapters.size} Chapters",
+                                text = "Rationalised Syllabus • ${book.chapters.size} Chapters • Full Notes",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -631,9 +636,9 @@ private fun NcertBookDetailView(
                 NcertChapterCard(
                     chapter = chapter,
                     book = book,
+                    onOpenDetailedNotes = { selectedChapterForDetailedNotes = chapter },
                     onCreateNote = { onCreateNote(chapter) },
                     onAskAi = { onAskAi(chapter) },
-                    onOpenMatching = onOpenMatching,
                     onOpenPdfPortal = {
                         val portalUrl = chapter.pdfPortalUrl ?: book.officialNcertUrl
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(portalUrl))
@@ -647,6 +652,23 @@ private fun NcertBookDetailView(
             }
         }
     }
+
+    // Detailed Notes Full Reader Dialog
+    selectedChapterForDetailedNotes?.let { chapter ->
+        NcertDetailedNotesDialog(
+            book = book,
+            chapter = chapter,
+            onDismiss = { selectedChapterForDetailedNotes = null },
+            onCreateNote = {
+                selectedChapterForDetailedNotes = null
+                onCreateNote(chapter)
+            },
+            onAskAi = {
+                selectedChapterForDetailedNotes = null
+                onAskAi(chapter)
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -654,17 +676,21 @@ private fun NcertBookDetailView(
 private fun NcertChapterCard(
     chapter: NcertChapterInfo,
     book: NcertBook,
+    onOpenDetailedNotes: () -> Unit,
     onCreateNote: () -> Unit,
     onAskAi: () -> Unit,
-    onOpenMatching: (String) -> Unit,
     onOpenPdfPortal: () -> Unit
 ) {
     val bookColor = Color(book.coverColorHex)
+    var isQuickNotesExpanded by remember { mutableStateOf(false) }
+    val detailedNotes = remember(book.id, chapter.chapterNumber) {
+        NcertNotesProvider.getDetailedNotes(book, chapter)
+    }
 
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
             .fillMaxWidth()
             .testTag("ncert_chapter_card_${chapter.chapterNumber}")
@@ -678,7 +704,7 @@ private fun NcertChapterCard(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(38.dp)
                         .clip(CircleShape)
                         .background(bookColor.copy(alpha = 0.15f))
                 ) {
@@ -704,6 +730,31 @@ private fun NcertChapterCard(
                             text = chapter.hindiTitle,
                             style = MaterialTheme.typography.labelMedium,
                             color = TextSecondary
+                        )
+                    }
+                }
+
+                // In-Depth Notes Indicator Badge
+                Surface(
+                    color = EmeraldGreenLight,
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MenuBook,
+                            contentDescription = null,
+                            tint = EmeraldGreen,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                            text = "Notes In Detail",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = EmeraldGreen
                         )
                     }
                 }
@@ -743,31 +794,119 @@ private fun NcertChapterCard(
                 }
             }
 
+            // Quick Inline Preview Toggle
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { isQuickNotesExpanded = !isQuickNotesExpanded }
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (isQuickNotesExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = bookColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (isQuickNotesExpanded) "Collapse Notes Preview" else "Preview Detailed Notes (${detailedNotes.keyConcepts.size} Sections • ${detailedNotes.importantDefinitions.size} Definitions)",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = bookColor
+                    )
+                }
+
+                Text(
+                    text = "Tap to view",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Expandable Inline Notes Section
+            AnimatedVisibility(visible = isQuickNotesExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                ) {
+                    // Quick Concept Highlights
+                    detailedNotes.keyConcepts.take(2).forEach { concept ->
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Text(
+                                    text = concept.title,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = concept.explanation,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    if (detailedNotes.importantDefinitions.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Key Definition:",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        val firstDef = detailedNotes.importantDefinitions.first()
+                        Text(
+                            text = "• ${firstDef.first}: ${firstDef.second}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Chapter Action Buttons
+            // Chapter Action Buttons: Detailed Notes, Make Notes, Ask AI, PDF
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Official PDF
-                OutlinedButton(
-                    onClick = onOpenPdfPortal,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                // Read Detailed Notes (Prominent Primary Action)
+                Button(
+                    onClick = onOpenDetailedNotes,
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = bookColor),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier
+                        .height(34.dp)
+                        .testTag("ncert_chapter_read_detailed_notes_${chapter.chapterNumber}")
                 ) {
                     Icon(
-                        Icons.Default.PictureAsPdf,
+                        Icons.Default.MenuBook,
                         contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = CrimsonRed
+                        modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("PDF Portal", style = MaterialTheme.typography.labelSmall)
+                    Text("Detailed Notes", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                 }
 
                 // Create Smart Notes
@@ -775,15 +914,17 @@ private fun NcertChapterCard(
                     onClick = onCreateNote,
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier
+                        .height(34.dp)
+                        .testTag("ncert_chapter_make_notes_${chapter.chapterNumber}")
                 ) {
                     Icon(
                         Icons.Default.EditNote,
                         contentDescription = null,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Make Notes", style = MaterialTheme.typography.labelSmall)
+                    Text("Save Note", style = MaterialTheme.typography.labelSmall)
                 }
 
                 // Ask AI Tutor
@@ -791,7 +932,7 @@ private fun NcertChapterCard(
                     onClick = onAskAi,
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier.height(34.dp)
                 ) {
                     Icon(
                         Icons.Default.AutoAwesome,
@@ -803,25 +944,537 @@ private fun NcertChapterCard(
                     Text("Ask AI", style = MaterialTheme.typography.labelSmall)
                 }
 
-                // Link to Crux & PYQ if matched
-                if (chapter.matchingChapterId != null) {
-                    Button(
-                        onClick = { onOpenMatching(chapter.matchingChapterId) },
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = EmeraldGreen),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.height(32.dp)
+                // Official PDF
+                OutlinedButton(
+                    onClick = onOpenPdfPortal,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(34.dp)
+                ) {
+                    Icon(
+                        Icons.Default.PictureAsPdf,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = CrimsonRed
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("PDF", style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NcertDetailedNotesDialog(
+    book: NcertBook,
+    chapter: NcertChapterInfo,
+    onDismiss: () -> Unit,
+    onCreateNote: () -> Unit,
+    onAskAi: () -> Unit
+) {
+    val context = LocalContext.current
+    val bookColor = Color(book.coverColorHex)
+    val notes = remember(book.id, chapter.chapterNumber) {
+        NcertNotesProvider.getDetailedNotes(book, chapter)
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+                .testTag("ncert_detailed_notes_dialog"),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Dialog Header
+                Surface(
+                    color = bookColor.copy(alpha = 0.12f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Bolt,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Crux", style = MaterialTheme.typography.labelSmall)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(bookColor)
+                            ) {
+                                Text(
+                                    text = chapter.chapterNumber.toString(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = chapter.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "${book.title} • ${book.grade.displayName} • CBSE NCERT",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.testTag("ncert_detailed_notes_close_btn")
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Close detailed notes")
+                        }
+                    }
+                }
+
+                // Scrollable Detailed Notes Content
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    // Header Status
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = EmeraldGreenLight,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = EmeraldGreen,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Official NCERT Rationalised Study Notes in Detail",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = EmeraldGreen
+                                    )
+                                    Text(
+                                        text = "Curated according to CBSE 2024–25 board pattern with theoretical explanations, formulas, definitions, and model Q&As.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Chapter Overview
+                    item {
+                        DetailSectionCard(
+                            title = "Chapter Overview & Core Themes",
+                            icon = Icons.Default.Info,
+                            accentColor = bookColor
+                        ) {
+                            Text(
+                                text = notes.overview,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+                            )
+                        }
+                    }
+
+                    // Key Concepts Breakdown
+                    item {
+                        DetailSectionCard(
+                            title = "Detailed Conceptual Breakdown (${notes.keyConcepts.size} Units)",
+                            icon = Icons.Default.Lightbulb,
+                            accentColor = SaffronPrimary
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                notes.keyConcepts.forEach { concept ->
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(modifier = Modifier.padding(12.dp)) {
+                                            Text(
+                                                text = concept.title,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = concept.explanation,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                                            )
+
+                                            if (concept.keyPoints.isNotEmpty()) {
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                concept.keyPoints.forEach { point ->
+                                                    Row(
+                                                        verticalAlignment = Alignment.Top,
+                                                        modifier = Modifier.padding(vertical = 2.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = "• ",
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = bookColor
+                                                        )
+                                                        Text(
+                                                            text = point,
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onSurface
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Important Definitions & Key Terminology
+                    if (notes.importantDefinitions.isNotEmpty()) {
+                        item {
+                            DetailSectionCard(
+                                title = "Important NCERT Definitions & Terms",
+                                icon = Icons.Default.FormatQuote,
+                                accentColor = DeepNavy
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    notes.importantDefinitions.forEach { (term, definition) ->
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(10.dp),
+                                                verticalAlignment = Alignment.Top
+                                            ) {
+                                                Text(
+                                                    text = "📌",
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Column {
+                                                    Text(
+                                                        text = term,
+                                                        style = MaterialTheme.typography.titleSmall,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Text(
+                                                        text = definition,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Key Formulas, Laws, or Timelines
+                    if (notes.keyFormulasOrLaws.isNotEmpty()) {
+                        item {
+                            DetailSectionCard(
+                                title = "Essential Formulas, Equations & Laws",
+                                icon = Icons.Default.Functions,
+                                accentColor = CrimsonRed
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    notes.keyFormulasOrLaws.forEach { formula ->
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = CrimsonRedLight,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                text = formula,
+                                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = CrimsonRed,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // NCERT In-Text & Exercise Questions with Model Solutions
+                    if (notes.ncertQuestionsAndAnswers.isNotEmpty()) {
+                        item {
+                            DetailSectionCard(
+                                title = "NCERT In-Text & Exercise Q&A (Model Answers)",
+                                icon = Icons.Default.Quiz,
+                                accentColor = TealDark
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    notes.ncertQuestionsAndAnswers.forEachIndexed { idx, qna ->
+                                        Surface(
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Column(modifier = Modifier.padding(12.dp)) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Surface(
+                                                        shape = RoundedCornerShape(4.dp),
+                                                        color = TealDark
+                                                    ) {
+                                                        Text(
+                                                            text = "Q${idx + 1}",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = Color.White,
+                                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                        )
+                                                    }
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(
+                                                        text = qna.question,
+                                                        style = MaterialTheme.typography.titleSmall,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Text(
+                                                    text = "Model Solution:",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = EmeraldGreen
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = qna.answer,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // CBSE Board Exam Pointers
+                    if (notes.examPointers.isNotEmpty()) {
+                        item {
+                            DetailSectionCard(
+                                title = "CBSE Board Exam Pointers & Mistakes to Avoid",
+                                icon = Icons.Default.Star,
+                                accentColor = SaffronPrimary
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    notes.examPointers.forEach { tip ->
+                                        Row(
+                                            verticalAlignment = Alignment.Top,
+                                            modifier = Modifier.padding(vertical = 2.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = SaffronPrimary,
+                                                modifier = Modifier
+                                                    .size(16.dp)
+                                                    .padding(top = 2.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = tip,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Dialog Footer Actions
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 3.dp,
+                    shadowElevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp)
+                    ) {
+                        // Copy Notes Action
+                        OutlinedButton(
+                            onClick = {
+                                val fullNotesText = buildString {
+                                    appendLine("=== NCERT DETAILED NOTES: ${chapter.title} ===")
+                                    appendLine("Book: ${book.title} (${book.grade.displayName})")
+                                    appendLine()
+                                    appendLine("OVERVIEW:")
+                                    appendLine(notes.overview)
+                                    appendLine()
+                                    appendLine("KEY CONCEPTS:")
+                                    notes.keyConcepts.forEach { c ->
+                                        appendLine("${c.title}: ${c.explanation}")
+                                        c.keyPoints.forEach { p -> appendLine("  • $p") }
+                                    }
+                                    appendLine()
+                                    if (notes.importantDefinitions.isNotEmpty()) {
+                                        appendLine("DEFINITIONS:")
+                                        notes.importantDefinitions.forEach { (t, d) -> appendLine("• $t: $d") }
+                                        appendLine()
+                                    }
+                                    if (notes.keyFormulasOrLaws.isNotEmpty()) {
+                                        appendLine("FORMULAS & LAWS:")
+                                        notes.keyFormulasOrLaws.forEach { f -> appendLine("• $f") }
+                                        appendLine()
+                                    }
+                                    if (notes.ncertQuestionsAndAnswers.isNotEmpty()) {
+                                        appendLine("NCERT Q&A:")
+                                        notes.ncertQuestionsAndAnswers.forEach { q ->
+                                            appendLine("Q: ${q.question}")
+                                            appendLine("A: ${q.answer}")
+                                            appendLine()
+                                        }
+                                    }
+                                }
+
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("NCERT Notes: ${chapter.title}", fullNotesText)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "Detailed notes copied to clipboard!", Toast.LENGTH_SHORT).show()
+                            },
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(38.dp)
+                        ) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Copy Notes", style = MaterialTheme.typography.labelSmall)
+                        }
+
+                        // Ask AI Tutor
+                        FilledTonalButton(
+                            onClick = onAskAi,
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(38.dp)
+                        ) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = SaffronPrimary, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Ask AI Tutor", style = MaterialTheme.typography.labelSmall)
+                        }
+
+                        // Save to Notebook
+                        Button(
+                            onClick = onCreateNote,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = bookColor),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(38.dp)
+                                .testTag("ncert_detailed_notes_save_to_notebook")
+                        ) {
+                            Icon(Icons.Default.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Save to Notebook", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DetailSectionCard(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    accentColor: Color,
+    content: @Composable () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(accentColor.copy(alpha = 0.15f))
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = accentColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            content()
         }
     }
 }

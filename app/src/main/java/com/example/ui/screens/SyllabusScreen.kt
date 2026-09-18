@@ -379,7 +379,7 @@ fun SyllabusScreen(
                         }
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Browse official NCERT textbooks, chapter breakdowns & PDF portals",
+                            text = "Browse official NCERT textbooks, comprehensive in-depth study notes & PDF portals",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

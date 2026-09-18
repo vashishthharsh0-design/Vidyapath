@@ -7,7 +7,29 @@ data class NcertChapterInfo(
     val summary: String,
     val keyTopics: List<String> = emptyList(),
     val pdfPortalUrl: String = "https://ncert.nic.in/textbook.php",
-    val matchingChapterId: String? = null
+    val matchingChapterId: String? = null,
+    val detailedNotes: NcertChapterDetailedNotes? = null
+)
+
+data class NcertChapterDetailedNotes(
+    val overview: String,
+    val keyConcepts: List<NcertNoteConcept>,
+    val importantDefinitions: List<Pair<String, String>> = emptyList(),
+    val keyFormulasOrLaws: List<String> = emptyList(),
+    val ncertQuestionsAndAnswers: List<NcertQnA> = emptyList(),
+    val examPointers: List<String> = emptyList()
+)
+
+data class NcertNoteConcept(
+    val title: String,
+    val explanation: String,
+    val keyPoints: List<String> = emptyList()
+)
+
+data class NcertQnA(
+    val question: String,
+    val answer: String,
+    val questionType: String = "NCERT Exercise"
 )
 
 data class NcertBook(

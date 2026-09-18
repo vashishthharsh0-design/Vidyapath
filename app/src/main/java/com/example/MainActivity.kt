@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.data.NcertNotesProvider
 import com.example.model.NoteMethodType
 import com.example.ui.components.AppBottomNav
 import com.example.ui.components.AppTopBar
@@ -305,23 +306,60 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                                     onSearchQueryChange = { viewModel.setNcertSearchQuery(it) },
                                     onFilterSubject = { viewModel.setNcertFilterSubject(it) },
                                     onCreateNoteFromChapter = { book, chapter ->
+                                        val detailedNotes = NcertNotesProvider.getDetailedNotes(book, chapter)
+                                        val cueText = buildString {
+                                            appendLine("NCERT KEY TOPICS:")
+                                            chapter.keyTopics.forEach { appendLine("• $it") }
+                                            if (detailedNotes.importantDefinitions.isNotEmpty()) {
+                                                appendLine()
+                                                appendLine("KEY DEFINITIONS:")
+                                                detailedNotes.importantDefinitions.forEach { (t, d) -> appendLine("• $t: $d") }
+                                            }
+                                        }
+                                        val mainText = buildString {
+                                            appendLine("NCERT CHAPTER OVERVIEW:")
+                                            appendLine(detailedNotes.overview)
+                                            appendLine()
+                                            appendLine("DETAILED CONCEPTS & THEORY:")
+                                            detailedNotes.keyConcepts.forEach { c ->
+                                                appendLine(c.title)
+                                                appendLine(c.explanation)
+                                                c.keyPoints.forEach { p -> appendLine("  - $p") }
+                                                appendLine()
+                                            }
+                                            if (detailedNotes.keyFormulasOrLaws.isNotEmpty()) {
+                                                appendLine("ESSENTIAL FORMULAS, LAWS & TIMELINES:")
+                                                detailedNotes.keyFormulasOrLaws.forEach { f -> appendLine("• $f") }
+                                                appendLine()
+                                            }
+                                            if (detailedNotes.ncertQuestionsAndAnswers.isNotEmpty()) {
+                                                appendLine("NCERT EXERCISE MODEL Q&A:")
+                                                detailedNotes.ncertQuestionsAndAnswers.forEach { qna ->
+                                                    appendLine("Q: ${qna.question}")
+                                                    appendLine("A: ${qna.answer}")
+                                                    appendLine()
+                                                }
+                                            }
+                                        }
+                                        val summaryText = buildString {
+                                            appendLine("EXAM REVISION & BOARD POINTERS:")
+                                            detailedNotes.examPointers.forEach { appendLine("• $it") }
+                                        }
+
                                         viewModel.openNewNoteEditor(
                                             initialTitle = "${chapter.title} (Ch ${chapter.chapterNumber})",
                                             initialSubject = book.subject.displayName,
                                             initialChapter = "${book.title} - Ch ${chapter.chapterNumber}",
                                             initialMethod = NoteMethodType.CORNELL,
-                                            initialCue = "Key NCERT Topics:\n" + chapter.keyTopics.joinToString("\n") { "• $it" } + "\n\nCBSE Code: ${book.cbseBookCode}",
-                                            initialMain = "NCERT CHAPTER SYLLABUS & CORE CONCEPTS:\n${chapter.summary}\n\n1. Essential Definitions:\n\n\n2. Key Formulae / Theorems / Chronology:\n\n\n3. High-Frequency Board Questions:\n",
-                                            initialSummary = "Quick Revision / Exam Takeaway:\n${chapter.title} - ${chapter.hindiTitle}",
+                                            initialCue = cueText,
+                                            initialMain = mainText,
+                                            initialSummary = summaryText,
                                             initialTags = "#NCERT, #${book.grade.displayName.replace(" ", "")}, #${book.subject.displayName}"
                                         )
                                     },
                                     onAskAiTutor = { book, chapter ->
                                         viewModel.selectTab(AppTab.AI_TUTOR)
-                                        viewModel.setAiInputText("Please explain NCERT ${book.title} Chapter ${chapter.chapterNumber}: '${chapter.title}' (${chapter.hindiTitle}). What are the key concepts and most frequent CBSE exam questions from this chapter?")
-                                    },
-                                    onOpenMatchingChapter = { matchingChapterId ->
-                                        viewModel.openMatchingSyllabusChapter(matchingChapterId)
+                                        viewModel.setAiInputText("Please explain NCERT ${book.title} Chapter ${chapter.chapterNumber}: '${chapter.title}' (${chapter.hindiTitle}) in detail. What are the core concepts, derivations/mechanisms, and most frequent CBSE exam questions from this chapter?")
                                     }
                                 )
                             }

@@ -26,6 +26,7 @@ import com.example.model.ClassGrade
 import com.example.ui.theme.*
 import com.example.viewmodel.AppTab
 import com.example.viewmodel.MainUiState
+import com.example.viewmodel.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,12 +39,17 @@ fun AppTopBar(
     onToggleLiteMode: () -> Unit = {},
     onOpenLiteModeInfo: () -> Unit = {},
     onDismissNetworkNotice: () -> Unit = {},
+    onToggleThemeMode: () -> Unit = {},
+    onSetThemeMode: (ThemeMode) -> Unit = {},
+    onOpenApkDownload: () -> Unit = {},
+    isDark: Boolean = false,
     onBackClick: (() -> Unit)? = null,
     onAiTutorClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showGradeMenu by remember { mutableStateOf(false) }
     var showBoardMenu by remember { mutableStateOf(false) }
+    var showThemeMenu by remember { mutableStateOf(false) }
     var isSearchExpanded by remember { mutableStateOf(false) }
 
     Surface(
@@ -162,6 +168,36 @@ fun AppTopBar(
                         )
                     }
 
+                    // Dynamic Theme Toggle Button (Day / Night Low-Light Mode)
+                    IconButton(
+                        onClick = onToggleThemeMode,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .testTag("top_bar_theme_toggle_btn")
+                    ) {
+                        Icon(
+                            imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (isDark) "Switch to Light Mode" else "Switch to Dark Mode (Night Reading)",
+                            tint = if (isDark) AmberGold else PeacockIndigo,
+                            modifier = Modifier.size(21.dp)
+                        )
+                    }
+
+                    // Universal APK Download shortcut
+                    IconButton(
+                        onClick = onOpenApkDownload,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .testTag("top_bar_apk_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.InstallMobile,
+                            contentDescription = "Universal Android APK & Sideload",
+                            tint = SaffronPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
                     // AI Tutor Shortcut
                     if (onAiTutorClick != null) {
                         IconButton(
@@ -207,6 +243,124 @@ fun AppTopBar(
                     .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
             ) {
+                // Dynamic Theme Mode Selector Chip
+                Box {
+                    Surface(
+                        color = if (isDark) DarkSurfaceElevated else SurfaceContainerHigh,
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { showThemeMenu = true }
+                            .testTag("theme_mode_chip")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isDark) Icons.Default.DarkMode else Icons.Default.LightMode,
+                                contentDescription = null,
+                                tint = if (isDark) AmberGold else SaffronPrimary,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(
+                                text = when (state.themeMode) {
+                                    ThemeMode.DARK -> "Dark Mode"
+                                    ThemeMode.LIGHT -> "Light Mode"
+                                    ThemeMode.SYSTEM -> if (isDark) "Auto (Dark)" else "Auto (Light)"
+                                },
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = showThemeMenu,
+                        onDismissRequest = { showThemeMenu = false }
+                    ) {
+                        ThemeMode.values().forEach { mode ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(
+                                            text = mode.displayName,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = if (state.themeMode == mode) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                        Text(
+                                            text = mode.subtitle,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    onSetThemeMode(mode)
+                                    showThemeMenu = false
+                                },
+                                leadingIcon = {
+                                    val icon = when (mode) {
+                                        ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness
+                                        ThemeMode.LIGHT -> Icons.Default.LightMode
+                                        ThemeMode.DARK -> Icons.Default.DarkMode
+                                    }
+                                    val tint = when (mode) {
+                                        ThemeMode.SYSTEM -> MaterialTheme.colorScheme.primary
+                                        ThemeMode.LIGHT -> SaffronPrimary
+                                        ThemeMode.DARK -> AmberGold
+                                    }
+                                    Icon(icon, contentDescription = null, tint = tint)
+                                },
+                                trailingIcon = {
+                                    if (state.themeMode == mode) {
+                                        Icon(Icons.Default.Check, contentDescription = null, tint = SaffronPrimary)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Get Universal APK Chip
+                Surface(
+                    color = SaffronPrimary.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .height(32.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { onOpenApkDownload() }
+                        .testTag("top_bar_get_apk_chip")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.GetApp,
+                            contentDescription = null,
+                            tint = SaffronPrimary,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "Get APK",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = SaffronPrimary
+                        )
+                    }
+                }
+
                 // Live Network Status Chip (Auto-syncs with internet state)
                 Surface(
                     color = if (state.isNetworkAvailable) EmeraldGreenLight.copy(alpha = 0.6f) else AmberWarningLight,

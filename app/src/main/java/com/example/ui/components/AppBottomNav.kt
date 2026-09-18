@@ -27,6 +27,9 @@ fun AppBottomNav(
     selectedTab: AppTab,
     onTabSelected: (AppTab) -> Unit,
     isLiteMode: Boolean = false,
+    onToggleThemeMode: () -> Unit = {},
+    onOpenApkDownload: () -> Unit = {},
+    isDark: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var showMoreSheet by remember { mutableStateOf(false) }
@@ -281,6 +284,87 @@ fun AppBottomNav(
                         showMoreSheet = false
                     },
                     testTag = "more_tool_flashcards"
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "READING EXPERIENCE & SPECIAL NEEDS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Low-Light Dark Mode Toggle Card
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isDark) DarkSurfaceElevated else SurfaceContainerHigh
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onToggleThemeMode() }
+                        .testTag("more_tool_theme_toggle")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .background((if (isDark) AmberGold else PeacockIndigo).copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = null,
+                                tint = if (isDark) AmberGold else PeacockIndigo,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (isDark) "Switch to Light Mode" else "Dark Mode (Low-Light Reading)",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (isDark) "Daylight paper parchment theme" else "Eye-friendly slate theme for low-light night study",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = isDark,
+                            onCheckedChange = { onToggleThemeMode() }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Download Universal APK Card
+                ToolOptionRow(
+                    title = "Download Universal APK",
+                    subtitle = "Install on any Android phone, tablet or Chromebook (Full Offline)",
+                    icon = Icons.Default.InstallMobile,
+                    iconTint = SaffronPrimary,
+                    isSelected = false,
+                    onClick = {
+                        onOpenApkDownload()
+                        showMoreSheet = false
+                    },
+                    testTag = "more_tool_download_apk"
                 )
             }
         }

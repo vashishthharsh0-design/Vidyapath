@@ -10,6 +10,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.NcertNotesProvider
 import com.example.model.NoteMethodType
+import com.example.ui.components.ApkDownloadDialog
 import com.example.ui.components.AppBottomNav
 import com.example.ui.components.AppTopBar
 import com.example.ui.components.LiteModeInfoDialog
@@ -30,6 +32,7 @@ import com.example.ui.screens.*
 import com.example.ui.theme.VidyaNotesTheme
 import com.example.viewmodel.AppTab
 import com.example.viewmodel.MainViewModel
+import com.example.viewmodel.ThemeMode
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -38,15 +41,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            VidyaNotesTheme {
-                VidyaNotesApp(viewModel = viewModel)
+            val state by viewModel.uiState.collectAsStateWithLifecycle()
+            val systemDark = isSystemInDarkTheme()
+            val isDark = when (state.themeMode) {
+                ThemeMode.SYSTEM -> systemDark
+                ThemeMode.DARK -> true
+                ThemeMode.LIGHT -> false
+            }
+
+            VidyaNotesTheme(darkTheme = isDark) {
+                VidyaNotesApp(viewModel = viewModel, isDark = isDark)
             }
         }
     }
 }
 
 @Composable
-fun VidyaNotesApp(viewModel: MainViewModel) {
+fun VidyaNotesApp(viewModel: MainViewModel, isDark: Boolean = false) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Handle Android system back button
@@ -92,6 +103,10 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                     onToggleLiteMode = { viewModel.toggleLiteMode() },
                     onOpenLiteModeInfo = { viewModel.openLiteModeInfoDialog() },
                     onDismissNetworkNotice = { viewModel.dismissNetworkNotice() },
+                    onToggleThemeMode = { viewModel.toggleThemeMode() },
+                    onSetThemeMode = { viewModel.setThemeMode(it) },
+                    onOpenApkDownload = { viewModel.openApkDownloadDialog() },
+                    isDark = isDark,
                     onBackClick = if (state.selectedChapter != null) {
                         { viewModel.selectChapter(null) }
                     } else if (state.selectedNcertBook != null) {
@@ -105,7 +120,10 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                     AppBottomNav(
                         selectedTab = state.activeTab,
                         onTabSelected = { viewModel.selectTab(it) },
-                        isLiteMode = state.isLiteMode
+                        isLiteMode = state.isLiteMode,
+                        onToggleThemeMode = { viewModel.toggleThemeMode() },
+                        onOpenApkDownload = { viewModel.openApkDownloadDialog() },
+                        isDark = isDark
                     )
                 }
             },
@@ -389,6 +407,12 @@ fun VidyaNotesApp(viewModel: MainViewModel) {
                 viewModel.applyCruxToTargetNote(summaryText, cuesText)
             },
             onDismiss = { viewModel.dismissNoteCruxDialog() }
+        )
+    }
+
+    if (state.showApkDownloadDialog) {
+        ApkDownloadDialog(
+            onDismiss = { viewModel.dismissApkDownloadDialog() }
         )
     }
 }

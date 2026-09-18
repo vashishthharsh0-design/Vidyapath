@@ -1,6 +1,7 @@
 package com.example.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.GeminiChatRepository
@@ -75,8 +76,16 @@ data class MainUiState(
     val selectedNcertBook: NcertBook? = null,
     val ncertSearchQuery: String = "",
     val ncertFilterSubject: SubjectType? = null,
-    val selectedNcertChapter: NcertChapterInfo? = null
+    val selectedNcertChapter: NcertChapterInfo? = null,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val showApkDownloadDialog: Boolean = false
 )
+
+enum class ThemeMode(val displayName: String, val subtitle: String) {
+    SYSTEM("System Default", "Follows device appearance"),
+    LIGHT("Light Mode", "Crisp paper parchment style for daylight"),
+    DARK("Dark Mode", "Eye-friendly low-light reading for night study")
+}
 
 enum class AppTab(val title: String, val iconKey: String) {
     SYLLABUS("Syllabus", "MenuBook"),
@@ -94,8 +103,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getDatabase(application)
     private val repository = NoteRepository(database.noteDao(), database.flashcardDao())
     private val networkMonitor = NetworkMonitor(application)
+    private val sharedPreferences = application.getSharedPreferences("vidya_notes_prefs", Context.MODE_PRIVATE)
 
-    private val _uiState = MutableStateFlow(MainUiState())
+    private val _uiState = MutableStateFlow(
+        MainUiState(
+            themeMode = runCatching {
+                ThemeMode.valueOf(
+                    application.getSharedPreferences("vidya_notes_prefs", Context.MODE_PRIVATE)
+                        .getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
+                )
+            }.getOrDefault(ThemeMode.SYSTEM)
+        )
+    )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
@@ -764,5 +783,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
         }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        _uiState.update { it.copy(themeMode = mode) }
+        viewModelScope.launch {
+            sharedPreferences.edit().putString("theme_mode", mode.name).apply()
+        }
+    }
+
+    fun toggleThemeMode() {
+        val nextMode = when (_uiState.value.themeMode) {
+            ThemeMode.SYSTEM -> ThemeMode.DARK
+            ThemeMode.DARK -> ThemeMode.LIGHT
+            ThemeMode.LIGHT -> ThemeMode.DARK
+        }
+        setThemeMode(nextMode)
+    }
+
+    fun openApkDownloadDialog() {
+        _uiState.update { it.copy(showApkDownloadDialog = true) }
+    }
+
+    fun dismissApkDownloadDialog() {
+        _uiState.update { it.copy(showApkDownloadDialog = false) }
     }
 }
